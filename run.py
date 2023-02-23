@@ -1,6 +1,6 @@
 from settings import HOST,PORT,RELOAD,WORKERS
 from fastapi import FastAPI,Request
-from source import root_router
+from source.member import member_router
 from loguru import logger
 from utils import request_parse,response_parse,make_log
 import asyncio
@@ -8,7 +8,7 @@ import uvicorn
 
 
 app = FastAPI()
-app.include_router(root_router)
+app.include_router(member_router)
 
 @app.on_event("startup")
 async def init():

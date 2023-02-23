@@ -1,0 +1,5 @@
+fastapi[all]
+fastapi-utils
+loguru
+pymysql
+SQLAlchemy
