@@ -1,4 +1,4 @@
-from settings import HOST,PORT,RELOAD,WORKERS
+from settings import HOST,PORT,RELOAD,WORKERS,DOCS_URL,REDOC_URL
 from fastapi import FastAPI,Request
 from source.member import member_router
 from loguru import logger
@@ -7,7 +7,7 @@ import asyncio
 import uvicorn
 
 
-app = FastAPI()
+app = FastAPI(docs_url=DOCS_URL,redoc_url=REDOC_URL)
 app.include_router(member_router)
 
 @app.on_event("startup")

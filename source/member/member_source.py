@@ -22,22 +22,18 @@ session = engine.sessionmaker()
 class MemberSource:
     @member_router.post(MEMBER_URL+"/sign_up",summary="회원가입",)
     async def sign_up(self, member_info: Member_signup):
-
         # birth date로 형변환
         format = '%Y/%m/%d'
         member_info.birth = datetime.datetime.strptime(member_info.birth,format)
-        
         # 회원가입
         member = Member(**member_info.dict())
         session.add(member)
         session.commit()
-        
         return member
 
 
     @member_router.post(MEMBER_URL+"/image_upload",summary="프로필 이미지 업로드",)
     async def image_upload(self, profile_image: UploadFile=File()):
-        print(profile_image)
         return profile_image
 
 

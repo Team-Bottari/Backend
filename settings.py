@@ -6,7 +6,13 @@ VERSION = 'v1.0.0'
 RELOAD = False if DEPLOY_MODE else True
 WORKERS = 8 if DEPLOY_MODE else 1
 
+# DB Params
 DB_USER = 'root'
 DB_PASSWORD = 'rlatngusdlskarud'
 DB_PORT = 3307
 DATABASE = 'gym'
+
+
+# Docs Params
+DOCS_URL = None if DEPLOY_MODE else "/docs"
+REDOC_URL = None if DEPLOY_MODE else "/redoc"
