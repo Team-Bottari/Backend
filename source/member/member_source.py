@@ -4,12 +4,12 @@ from fastapi import UploadFile, File, Request
 from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL
 from fastapi_utils.inferring_router import InferringRouter
-from db import session
 from .member_data import Member_signup
-from db.models import Member
+from async_db import session,Member
 import datetime
 
 member_router = InferringRouter()
+
 
 @cbv(member_router)
 class MemberSource:
@@ -21,8 +21,8 @@ class MemberSource:
         # 회원가입
         member = Member(**jsonable_encoder(member_info))
         session.add(member)
-        session.commit()
-        return member
+        await session.commit()
+        return JSONResponse({"이거야":"맞아!","정말?":"응!","ABCD":"1234"})
 
 
     @member_router.post(MEMBER_URL+"/image_upload",summary="프로필 이미지 업로드",)
