@@ -1,6 +1,15 @@
 import time
+from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS
 
-
+def make_run_bash():
+    if DEPLOY_MODE:
+        with open("run.sh","w") as f:
+            f.write("#!/bin/bash\n")
+            f.write(f"gunicorn run:app --workers {WORKERS} --worker-class uvicorn.workers.UvicornWorker --bind {HOST}:{PORT}")
+    else:
+        with open("run.sh","w") as f:
+            f.write("#!/bin/bash\n")
+            f.write(f"uvicorn run:app --host={HOST} --port={PORT}")
 
 
 
