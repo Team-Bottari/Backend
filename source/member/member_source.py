@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL
 from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check
-from async_db import session, Member
+from db import session, Member
 from sqlalchemy import select, update
 import datetime
 
