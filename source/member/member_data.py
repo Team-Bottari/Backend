@@ -6,7 +6,6 @@ class Member_override(BaseModel):
 class Member_info_check(BaseModel):
     id : EmailStr
 
-class Member_info_
 
 class Member_signup(BaseModel):
     id : EmailStr
