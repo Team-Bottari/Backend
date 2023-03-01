@@ -3,6 +3,11 @@ from pydantic import BaseModel,EmailStr,Field
 class Member_override(BaseModel):
     id : EmailStr
 
+class Member_info_check(BaseModel):
+    id : EmailStr
+
+class Member_info_
+
 class Member_signup(BaseModel):
     id : EmailStr
     pw : str = Field(min_length=10,max_length=20)
