@@ -1,10 +1,18 @@
 import time
 import ujson
+import random
 from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import iterate_in_threadpool
 
+CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-=_+"
+
+def make_random_value():
+    result = ""
+    for i in range(16):
+        result+=CHARSETS[random.randint(0,len(CHARSETS)-1)]
+    return result
 
 def make_run_bash():
     if DEPLOY_MODE:

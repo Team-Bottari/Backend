@@ -6,6 +6,12 @@ class Member_override(BaseModel):
 class Member_info_check(BaseModel):
     id : EmailStr
 
+class Member_logout(BaseModel):
+    id : EmailStr
+
+class Member_withdrawal(BaseModel):
+    id : EmailStr
+
 
 class Member_signup(BaseModel):
     id : EmailStr
@@ -14,7 +20,6 @@ class Member_signup(BaseModel):
     name : str = Field(min_length=2,max_length=20)
     phone : str = Field(min_length=11,max_length=11)
     birth : str = Field(min_length=10,max_length=10)
-    status : bool = True
     credit_rating : int = 100
 
 class Member_login(BaseModel):

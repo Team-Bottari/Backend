@@ -16,7 +16,7 @@ class Member(Base):
     birth = Column(DATE, nullable=False)
     credit_rating = Column(INT, nullable=False)
     profile_picture = Column(TEXT, nullable=True)
-    status = Column(BOOLEAN, nullable=False)
+    withdrawal = Column(BOOLEAN, nullable=False)
     create_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
     last_login = Column(DATETIME, nullable=True)
     last_logout = Column(DATETIME, nullable=True)
