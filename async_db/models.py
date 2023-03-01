@@ -1,5 +1,6 @@
-from sqlalchemy import Column, TEXT, INT, BIGINT, BOOLEAN, DATE
+from sqlalchemy import Column, TEXT, INT, BIGINT, BOOLEAN, DATE, DATETIME
 from sqlalchemy.ext.declarative import declarative_base
+import datetime
 
 Base = declarative_base()
 
@@ -16,3 +17,4 @@ class Member(Base):
     credit_rating = Column(INT, nullable=False)
     profile_picture = Column(TEXT, nullable=True)
     status = Column(BOOLEAN, nullable=False)
+    create_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)

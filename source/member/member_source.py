@@ -4,8 +4,9 @@ from fastapi import UploadFile, File, Request
 from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL
 from fastapi_utils.inferring_router import InferringRouter
-from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail
+from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check
 from async_db import session,Member
+from sqlalchemy import select
 import datetime
 
 member_router = InferringRouter()
@@ -13,34 +14,52 @@ member_router = InferringRouter()
 
 @cbv(member_router)
 class MemberSource:
-    @member_router.post(MEMBER_URL+"/override",summary="아이디 중복 확인",)
+    @member_router.post(MEMBER_URL+"/override", summary="아이디 중복 확인")
     async def is_override(self,member_info: Member_override):
         member_info = jsonable_encoder(member_info)
-        
+        query = select(Member).where(Member.id==member_info["id"])
+        result = await session.execute(query)
+        if result.first() is None:
+            return {"override":False}
+        else:
+            return {"override":True}
     
-    @member_router.post(MEMBER_URL+"/sign_up",summary="회원가입",)
+    @member_router.post(MEMBER_URL+"/sign_up", summary="회원가입")
     async def sign_up(self, member_info: Member_signup):
+        member_info = jsonable_encoder(member_info)
         # birth date로 형변환
-        member_info.birth = datetime.datetime.strptime(member_info.birth,'%Y/%m/%d')
+        member_info['birth'] = datetime.datetime.strptime(member_info['birth'],'%Y/%m/%d')
+        member_info['create_at'] = datetime.datetime.now()
         # 회원가입
-        member = Member(**jsonable_encoder(member_info))
+        member = Member(**member_info)
         session.add(member)
         await session.commit()
-        return JSONResponse({"이거야":"맞아!","정말?":"응!","ABCD":"1234"})
+        #TODO 암호화 필요.
+        return JSONResponse({"sign_up":True})
 
-    @member_router.post(MEMBER_URL+"/login",summary="로그인",)
+    @member_router.post(MEMBER_URL+"/login", summary="로그인",)
     async def login(self,member_info:Member_login):
         member_info = jsonable_encoder(member_info)
-        
+        query = select(Member).where(Member.id==member_info["id"], Member.pw == member_info['pw'])
+        result = await session.execute(query)
+        #TODO 마지막 접속시간 체크?
+        if result.first() is None:
+            return {"sign_in": False}
+        else:
+            return {"sign_in": True}
 
     @member_router.post(MEMBER_URL+"/logout",summary="로그아웃",)
     async def logout(self,member_info:Member_override):
         member_info = jsonable_encoder(member_info)
-        
+        return {"logout":True}
         
     @member_router.post(MEMBER_URL+"/info",summary="회원정보",)
-    async def member_info(self,member_info:Member_override):
+    async def member_info(self,member_info:Member_info_check):
         member_info = jsonable_encoder(member_info)
+        member_info_from_id = session.query(Member).filter_by(id = member_info['id']).first()
+        print(jsonable_encoder(member_info_from_id))
+
+        
         
         
     @member_router.post(MEMBER_URL+"/withdrawal",summary="회원탈퇴",)
