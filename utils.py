@@ -28,8 +28,12 @@ async def set_body(request: Request, body: bytes):
 async def request_parse(request):
     req_body = await request.body()
     await set_body(request, req_body)
-    body = ujson.loads(jsonable_encoder(req_body))
-    body_string = "\n".join([ f"\t\t{key} : {body[key]}" for key in body])
+    try:
+        body = ujson.loads(jsonable_encoder(req_body))
+        body_string = "\n".join([ f"\t\t{key} : {body[key]}" for key in body])
+        
+    except:
+        body_string = ""
     return f"\tMethod : {request.method}\n\t여기에서 : {request.client.host}:{request.client.port}\n\t여기로 : {request.url}\n\t요청JSON : \n{body_string}",time.time()
 
 async def response_parse(response):
