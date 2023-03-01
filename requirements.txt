@@ -1,6 +1,7 @@
 fastapi[all]
+SQLAlchemy>=2.0
 fastapi-utils
 loguru
 pymysql
-SQLAlchemy
+fastapi-mail
 sqladmin

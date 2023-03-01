@@ -5,10 +5,13 @@ from loguru import logger
 from utils import request_parse,response_parse,make_log,make_run_bash
 import os
 
+
+html = """
+<p>Thanks for using Fastapi-mail</p> 
+"""
+
 app = FastAPI(docs_url=DOCS_URL,redoc_url=REDOC_URL,title = "GYM-Bottari")
 app.include_router(member_router)
-
-
 
 
 @app.on_event("startup")

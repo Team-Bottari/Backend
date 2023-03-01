@@ -1,10 +1,14 @@
 import time
 import ujson
 import random
-from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS
+import smtplib
+from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS,DDNS,VERSION
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import iterate_in_threadpool
+from config import EMAILS
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-=_+"
 
@@ -13,6 +17,7 @@ def make_random_value():
     for i in range(16):
         result+=CHARSETS[random.randint(0,len(CHARSETS)-1)]
     return result
+
 
 def make_run_bash():
     if DEPLOY_MODE:
@@ -56,3 +61,62 @@ async def response_parse(response):
 
 def make_log(start_log,end_log,start_time,end_time):
     return start_log+"\n"+end_log+f"\n\t처리시간 : {str(end_time-start_time)[:7]}"
+
+def make_html(key):
+    # HTML = f"""
+    # <html>
+    #     <head>
+    #         <meta charset='utf-8'>
+    #         <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    #         <title>Page Title</title>
+    #         <meta name='viewport' content='width=device-width, initial-scale=1'>
+    #         <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    #         <script src='main.js'></script>
+    #     </head>
+    # <body>
+    #     <div>
+    #         <h3>안녕하세요 GYM-Bottari 입니다.</h3>
+    #     </div>
+    #     <p>요청에 동의하시면 아래 버튼을 눌러주세요.</p>
+    #     <form action="http://{DDNS}:{PORT}/api/{VERSION}/certification/{key}",method="get">
+    #         <button type>인증에 동의합니다.</button>
+    #     </form>
+    # </body>
+    # </html>"""
+    HTML = f"""
+    <html>
+        <head>
+            <meta charset='utf-8'>
+            <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+            <title>Page Title</title>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+            <script src='main.js'></script>
+        </head>
+    <body>
+        <div>
+            <h3>안녕하세요 GYM-Bottari 입니다.</h3>
+        </div>
+        <p>새로운 비밀번호는 <b>{key}<b></p>
+    </body>
+    </html>"""
+    return HTML
+
+def send_pw_mail(recvEmail,key):
+    sendEmail = EMAILS[0]["email"]
+    password = EMAILS[0]["password"]
+    smtpName = EMAILS[0]["smtp"]
+    smtpPort = EMAILS[0]["port"]
+    message = MIMEMultipart("alternative")
+    message['Subject'] ="안녕하세요. GYM-Bottari 입니다."
+    message['From'] = sendEmail
+    message['To'] = recvEmail
+    html = make_html(key)
+    part = MIMEText(html , "html")
+    message.attach(part)
+    s=smtplib.SMTP( smtpName , smtpPort ) #메일 서버 연결
+    s.starttls() #TLS 보안 처리
+    s.login( sendEmail , password ) #로그인
+    s.sendmail( sendEmail, recvEmail, message.as_string()) #메일 전송, 문자열로 변환하여 보냅니다.
+    s.close() #smtp 서버 연결을 종료합니다.
+    

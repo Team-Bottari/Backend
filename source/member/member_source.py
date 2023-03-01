@@ -1,13 +1,14 @@
 from fastapi.responses import JSONResponse
 from fastapi_utils.cbv import cbv
 from fastapi import UploadFile, File, Request
+from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL
 from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal
 from db import session, Member
 from sqlalchemy import select, update
-from utils import make_random_value
+from utils import make_random_value,send_pw_mail
 import datetime
 
 member_router = InferringRouter()
@@ -75,7 +76,6 @@ class MemberSource:
 
         
         
-        
     @member_router.post(MEMBER_URL+"/withdrawal",summary="회원탈퇴",)
     async def member_delete(self,member_info:Member_withdrawal):
         member_info = jsonable_encoder(member_info)
@@ -83,6 +83,8 @@ class MemberSource:
         result = await session.execute(query)
         await session.commit()
         return {"withdrawal":True}
+
+
 
     @member_router.post(MEMBER_URL+"/id-find",summary="이메일찾기",)
     async def find_email(self,member_info:Member_findemail):
@@ -98,14 +100,15 @@ class MemberSource:
         
     
     @member_router.post(MEMBER_URL+"/pw-find",summary="비밀번호찾기",)
-    async def find_pw(self,member_info:Member_findpw):
+    async def find_pw(self,member_info:Member_findpw,background_task:BackgroundTasks):
         member_info = jsonable_encoder(member_info)
+        target_email = member_info["id"]
         random_value = make_random_value()
         query = update(Member).where(Member.id==member_info["id"]).values(pw = random_value)
         result = await session.execute(query)
         await session.commit()
+        background_task.add_task(send_pw_mail,target_email,random_value)
         return {"random_value" : random_value}
-        #TODO 이메일 보내기!!!!
         
     
     @member_router.post(MEMBER_URL+"/pw-change",summary="비밀번호변경",)
