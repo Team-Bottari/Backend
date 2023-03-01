@@ -39,8 +39,11 @@ async def request_parse(request):
 async def response_parse(response):
     response_body = [chunk async for chunk in response.body_iterator]
     response.body_iterator = iterate_in_threadpool(iter(response_body))
-    body = ujson.loads(response_body[0].decode())
-    body_string = "\n".join([ f"\t\t{key} : {body[key]}" for key in body])
+    try:
+        body = ujson.loads(response_body[0].decode())
+        body_string = "\n".join([ f"\t\t{key} : {body[key]}" for key in body])
+    except:
+        body_string=""
     return f"\t응답코드 : {response.status_code}\n\t결과타입 : {response.headers['content-type']}\n\t결과JSON : \n{body_string}",time.time()
 
 def make_log(start_log,end_log,start_time,end_time):
