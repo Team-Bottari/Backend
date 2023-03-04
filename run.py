@@ -2,6 +2,7 @@ from settings import DOCS_URL,REDOC_URL
 from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
 from source.member import member_router
+from source.verification import verification_router
 from loguru import logger
 from db import engine
 from sqladmin import Admin
@@ -14,10 +15,11 @@ origins = [
     "http://localhost",
     "http://localhost:8080",
     "http://127.0.0.1",
-    "http://127.0.0.1:8000"
+    "http://127.0.0.1:8000",
     "http://wisixicidi.iptime.org",
     "http://wisixicidi.iptime.org:10000",
-    "http://wisixicidi.iptime.org:30000"
+    "http://wisixicidi.iptime.org:30000",
+    "https://gym-bottari.suveloper.com"
 ]
 
 
@@ -26,7 +28,7 @@ admin = Admin(app ,engine.engine ,title="회원 관리자 페이지")
 
 
 app.include_router(member_router)
-
+app.include_router(verification_router)
 admin.add_view(Member_Admin)
 
 app.add_middleware(
