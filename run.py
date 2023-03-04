@@ -1,17 +1,34 @@
 from settings import DOCS_URL,REDOC_URL
 from fastapi import FastAPI,Request
+from fastapi.middleware.cors import CORSMiddleware
 from source.member import member_router
 from loguru import logger
 from utils import request_parse,response_parse,make_log,make_run_bash
 import os
 
 
-html = """
-<p>Thanks for using Fastapi-mail</p> 
-"""
+origins = ["*"]
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+    "http://wisixicidi.iptime.org"
+    "https://wisixicidi.iptime.org"
+]
+
 
 app = FastAPI(docs_url=DOCS_URL,redoc_url=REDOC_URL,title = "GYM-Bottari")
 app.include_router(member_router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 @app.on_event("startup")

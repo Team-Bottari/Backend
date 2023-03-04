@@ -130,7 +130,7 @@ def send_pw_mail(recvEmail,key):
     smtpPort = EMAILS[0]["port"]
     message = MIMEMultipart("alternative")
     message['Subject'] ="안녕하세요. GYM-Bottari 입니다."
-    message['From'] = sendEmail
+    message['From'] =  sendEmail
     message['To'] = recvEmail
     html = make_passwd_html(key)
     part = MIMEText(html , "html")
@@ -138,6 +138,6 @@ def send_pw_mail(recvEmail,key):
     s=smtplib.SMTP( smtpName , smtpPort ) #메일 서버 연결
     s.starttls() #TLS 보안 처리
     s.login( sendEmail , password ) #로그인
-    s.sendmail( sendEmail, recvEmail, message.as_string()) #메일 전송, 문자열로 변환하여 보냅니다.
+    s.sendmail( sendEmail, recvEmail, message.as_string(),) #메일 전송, 문자열로 변환하여 보냅니다.
     s.close() #smtp 서버 연결을 종료합니다.
     

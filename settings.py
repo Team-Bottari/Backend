@@ -1,7 +1,7 @@
 import os
 
 # Hyper-Params
-DEPLOY_MODE = False
+DEPLOY_MODE = True
 HOST = '192.168.0.32' if DEPLOY_MODE else '127.0.0.1'
 PORT = 30000 if DEPLOY_MODE else 8000
 VERSION = 'v1.0.0'
@@ -18,5 +18,5 @@ DATABASE = 'gym'
 
 
 # Docs Params
-DOCS_URL = None if DEPLOY_MODE else "/docs"
-REDOC_URL = None if DEPLOY_MODE else "/redoc"
+DOCS_URL = "/docs" # None if DEPLOY_MODE else "/docs"
+REDOC_URL =  "/redoc" # None if DEPLOY_MODE else "/redoc"
