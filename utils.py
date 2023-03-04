@@ -57,7 +57,11 @@ async def response_parse(response):
         body_string = "\n".join([ f"\t\t{key} : {body[key]}" for key in body])
     except:
         body_string=""
-    return f"\t응답코드 : {response.status_code}\n\t결과타입 : {response.headers['content-type']}\n\t결과JSON : \n{body_string}",time.time()
+    if not hasattr(response.headers,"content-type"):
+        content_type="else"
+    else:
+        content_type=response.headers["content-type"]
+    return f"\t응답코드 : {response.status_code}\n\t결과타입 : {content_type}\n\t결과JSON : \n{body_string}",time.time()
 
 def make_log(start_log,end_log,start_time,end_time):
     return start_log+"\n"+end_log+f"\n\t처리시간 : {str(end_time-start_time)[:7]}"
