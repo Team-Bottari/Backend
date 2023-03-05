@@ -16,6 +16,9 @@ DB_HOST = "192.168.0.32"
 DB_PORT = 3307
 DATABASE = 'gym'
 
+# Admin Params
+ADMIN_ID = "rlatngusdlskarud"
+ADMIN_PASSWORD = "rlatngusdlskarud"
 
 # Docs Params
 DOCS_URL = "/docs" # None if DEPLOY_MODE else "/docs"
