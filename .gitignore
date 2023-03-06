@@ -3,3 +3,4 @@ log/
 run.sh
 해야할것.txt
 nohup.out
+fastapi_env
