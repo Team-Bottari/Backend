@@ -3,12 +3,12 @@ from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
 from source.member import member_router
 from source.verification import verification_router
+from fastapi_utils.tasks import repeat_every
 from loguru import logger
 from db import engine
+from admin import MyBackend
 from sqladmin import Admin
-from sqladmin.authentication import AuthenticationBackend
 from db import Member_Admin
-from settings import ADMIN_ID,ADMIN_PASSWORD
 from utils import request_parse,response_parse,make_log,make_run_bash
 import os
 
@@ -24,36 +24,16 @@ origins = [
     "https://gym-bottari.suveloper.com"
 ]
 
-class MyBackend(AuthenticationBackend):
-    async def login(self, request: Request) -> bool:
-        form = await request.form()
-        username, password = form["username"], form["password"]
-        if (username==ADMIN_ID) and (password==ADMIN_PASSWORD):
-            request.session.update({"token": "..."})
-            return True
-        else:
-            return False
-
-    async def logout(self, request: Request) -> bool:
-        request.session.clear()
-        return True
-
-    async def authenticate(self, request: Request) -> bool:
-        token = request.session.get("token")
-        if not token:
-            return False
-        return True
 
 
 app = FastAPI(docs_url=DOCS_URL,redoc_url=REDOC_URL,title = "GYM-Bottari")
 authentication_backend = MyBackend(secret_key="...")
 admin = Admin(app ,engine.engine ,title="회원 관리자 페이지",authentication_backend=authentication_backend)
+admin.add_view(Member_Admin)
 
 
 app.include_router(member_router)
 app.include_router(verification_router)
-admin.add_view(Member_Admin)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -61,6 +41,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 
@@ -77,6 +58,11 @@ async def watch_log(request: Request, call_next,):
     log = make_log(start_log,end_log,start_time,end_time)
     logger.info(log,)
     return response
+
+@app.on_event("startup")
+@repeat_every(second=24*60*60)
+async def repeat_task():
+    return
 
 if __name__=="__main__":
     run_scripts = make_run_bash()

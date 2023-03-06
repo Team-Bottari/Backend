@@ -1,7 +1,9 @@
 fastapi[all]
-SQLAlchemy>=2.0
+SQLAlchemy
 fastapi-utils
+gunicorn
 loguru
 pymysql
+aiomysql
 fastapi-mail
 sqladmin

@@ -17,8 +17,8 @@ DB_PORT = 3307
 DATABASE = 'gym'
 
 # Admin Params
-ADMIN_ID = "rlatngusdlskarud"
-ADMIN_PASSWORD = "rlatngusdlskarud"
+ADMIN_ID = "관리자"
+ADMIN_PASSWORD = "rlatngusrladmstjqkrthdusdlskarud"
 
 # Docs Params
 DOCS_URL = "/docs" # None if DEPLOY_MODE else "/docs"
