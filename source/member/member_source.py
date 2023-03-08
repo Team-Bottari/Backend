@@ -8,7 +8,7 @@ from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal
 from db import session, Member
 from sqlalchemy import select, update
-from utils import make_random_value,send_pw_mail
+from utils import make_random_value,send_pw_mail, send_certificate_email
 import datetime
 
 member_router = InferringRouter()
@@ -26,24 +26,30 @@ class MemberSource:
         else:
             return {"override":True}
     
-    @member_router.post(MEMBER_URL+"/sign_up", summary="회원가입")
-    async def sign_up(self, member_info: Member_signup):
+    @member_router.post(MEMBER_URL+"/sign_up", summary="회원가입" )
+    async def sign_up(self, member_info: Member_signup ,background_task:BackgroundTasks):
         member_info = jsonable_encoder(member_info)
         # birth date로 형변환
         member_info['birth'] = datetime.datetime.strptime(member_info['birth'],'%Y-%m-%d')
         member_info['create_at'] = datetime.datetime.now()
         member_info['withdrawal'] = False
+        member_info['certificate_status'] = False
+        random_value = make_random_value()
+        member_info['certificate_num'] = random_value # 인증번호
+
         # 회원가입
         member = Member(**member_info)
         session.add(member)
         await session.commit()
+
+        background_task.add_task(send_certificate_email, member_info['id'], random_value)
         #TODO 암호화 필요.
         return JSONResponse({"sign_up":True})
 
     @member_router.post(MEMBER_URL+"/login", summary="로그인",)
     async def login(self,member_info:Member_login):
         member_info = jsonable_encoder(member_info)
-        query = select(Member).where(Member.id==member_info["id"], Member.pw == member_info['pw'], Member.withdrawal == False)
+        query = select(Member).where(Member.id==member_info["id"], Member.pw == member_info['pw'], Member.withdrawal == False, Member.certificate_status == True)
         result = await session.execute(query)
 
         if result.first() is None:

@@ -20,6 +20,8 @@ class Member(Base):
     create_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
     last_login = Column(DATETIME, nullable=True)
     last_logout = Column(DATETIME, nullable=True)
+    certificate_num = Column(TEXT, nullable=False)
+    certificate_status = Column(BOOLEAN, nullable=False)
 
         
 class Member_Admin(ModelView,model=Member):

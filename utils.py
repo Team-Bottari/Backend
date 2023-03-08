@@ -10,7 +10,7 @@ from config import EMAILS
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-=_+"
+CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 def make_random_value():
     result = ""
@@ -82,11 +82,12 @@ def make_certificate_html(key):
             <h3>안녕하세요 GYM-Bottari 입니다.</h3>
         </div>
         <p>요청에 동의하시면 아래 버튼을 눌러주세요.</p>
-        <form action="http://{DDNS}:{PORT}/api/{VERSION}/certification/{key}",method="get">
+        <form action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}",method="get">
             <button type>인증에 동의합니다.</button>
         </form>
     </body>
     </html>"""
+    return HTML
 
 def make_passwd_html(key):
     HTML = f"""
