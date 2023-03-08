@@ -60,7 +60,7 @@ async def watch_log(request: Request, call_next,):
     return response
 
 @app.on_event("startup")
-@repeat_every(second=24*60*60)
+@repeat_every(seconds=24*60*60)
 async def repeat_task():
     return
 
