@@ -21,7 +21,7 @@ def make_random_value():
 
 def make_run_bash():
     if DEPLOY_MODE:
-        run_scripts = f"gunicorn run:app\
+        run_scripts = f"pip3 install -r requirements.txt\ngunicorn run:app\
             --workers {WORKERS}\
             --worker-class uvicorn.workers.UvicornWorker\
             --threads {WORKERS*3}\
