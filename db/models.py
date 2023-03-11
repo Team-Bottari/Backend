@@ -36,4 +36,6 @@ class Member_Admin(ModelView,model=Member):
         Member.withdrawal,
         Member.create_at,
         Member.last_login,
-        Member.last_logout]
+        Member.last_logout,
+        Member.certificate_num,
+        Member.certificate_status]

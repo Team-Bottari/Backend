@@ -39,3 +39,9 @@ class Member_changepw(BaseModel):
     id : EmailStr
     before_pw : str = Field(min_length=10,max_length=20)
     new_pw : str = Field(min_length=10,max_length=20)
+
+class Member_checkpw(BaseModel):
+    id: EmailStr
+    pw : str = Field(min_length=10,max_length=20)
+
+    
