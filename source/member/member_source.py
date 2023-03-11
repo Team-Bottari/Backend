@@ -5,7 +5,7 @@ from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL
 from fastapi_utils.inferring_router import InferringRouter
-from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw
+from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info
 from db import session, Member
 from sqlalchemy import select, update
 from utils import make_random_value,send_pw_mail, send_certificate_email
@@ -141,3 +141,12 @@ class MemberSource:
             return JSONResponse({"pw_check":"비밀번호 확인 부탁드립니다."})
         else:
             return JSONResponse({'pw_check':True})
+        
+
+    @member_router.post(MEMBER_URL+"/update_member_info", summary="회원정보 수정")
+    async def update_member_info(self, member_info:Member_update_info):
+        member_info = jsonable_encoder(member_info)
+        query = update(Member).where(Member.id==member_info["id"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"])
+        result = await session.execute(query)
+        await session.commit()
+        return {"update_member_info": True}
