@@ -2,13 +2,19 @@ import time
 import ujson
 import random
 import smtplib
+import numpy as np
+import aiofiles
+import cv2
+import os
 from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS,DDNS,VERSION
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import iterate_in_threadpool
-from config import EMAILS
+from config import EMAILS,STORAGE_DIR
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from io import BytesIO
+from PIL import Image
 
 CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -21,7 +27,7 @@ def make_random_value():
 
 def make_run_bash():
     if DEPLOY_MODE:
-        run_scripts = f"pip3 install -r requirements.txt\ngunicorn run:app\
+        run_scripts = f"gunicorn run:app\
             --workers {WORKERS}\
             --worker-class uvicorn.workers.UvicornWorker\
             --threads {WORKERS*3}\
@@ -146,3 +152,28 @@ def send_pw_mail(recvEmail,key):
     s.sendmail( sendEmail, recvEmail, message.as_string(),) #메일 전송, 문자열로 변환하여 보냅니다.
     s.close() #smtp 서버 연결을 종료합니다.
     
+async def uploadfile2array(uploadfile):
+    return np.array(Image.open(BytesIO(await uploadfile.read())))
+
+async def save_image(image,full_path):
+    image_bytes = cv2.imencode(".jpg",image[:,:,::-1])[1].tobytes()
+    async with aiofiles.open(full_path,"wb") as f:
+        await f.write(image_bytes)
+
+async def profile_image_save(image,member_info):
+    member_info = ujson.loads(member_info)
+    try:
+        h,w,_ = image.shape
+    except:
+        error = image.shape
+        print(error)
+        exit()
+    try:
+        os.makedirs(os.path.join(STORAGE_DIR,member_info['id'],))
+    except:
+        pass
+    thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
+    await save_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_mini.jpg"))
+    standard_image = cv2.resize(image,(640,int(h*(640/w))))
+    await save_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_standard.jpg"))
+    await save_image(image,os.path.join(STORAGE_DIR,member_info['id'],"profile_origin.jpg"))

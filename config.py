@@ -8,7 +8,6 @@ MAIN_URL = "/api"+f"/{VERSION}"
 MEMBER_URL = MAIN_URL+"/member"
 VERIFICATION_URL = MAIN_URL+"/verification/{random_value}"
 
-
 EMAILS = [
     {
         "email":"kimsuhyun72@naver.com",
@@ -18,4 +17,5 @@ EMAILS = [
     }
 ]
 
+STORAGE_DIR = "/home/hdd_0"
 

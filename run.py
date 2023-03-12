@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+os.system(f"pip3 install -r {Path(__file__).parent/'requirements.txt'}")
 from settings import DOCS_URL,REDOC_URL
 from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +13,6 @@ from admin import MyBackend
 from sqladmin import Admin
 from db import Member_Admin
 from utils import request_parse,response_parse,make_log,make_run_bash
-import os
 
 
 origins = [

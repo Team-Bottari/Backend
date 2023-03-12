@@ -1,15 +1,20 @@
 from fastapi.responses import JSONResponse
+from fastapi import Body
 from fastapi_utils.cbv import cbv
 from fastapi import UploadFile, File, Request
 from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
-from config import MEMBER_URL
+from config import MEMBER_URL,STORAGE_DIR
 from fastapi_utils.inferring_router import InferringRouter
-from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info
+from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info,Member_upload
 from db import session, Member
 from sqlalchemy import select, update
-from utils import make_random_value,send_pw_mail, send_certificate_email
+from utils import make_random_value,send_pw_mail, send_certificate_email,uploadfile2array,profile_image_save
+from fastapi import UploadFile
+import aiofiles
+import cv2
 import datetime
+import os
 
 member_router = InferringRouter()
 
@@ -44,6 +49,9 @@ class MemberSource:
 
         background_task.add_task(send_certificate_email, member_info['id'], random_value)
         #TODO 암호화 필요.
+        
+        # FileStorage 만들기
+        os.makedirs(os.path.join(STORAGE_DIR,member_info["id"]))
         return JSONResponse({"sign_up":True})
 
     @member_router.post(MEMBER_URL+"/login", summary="로그인",)
@@ -143,10 +151,19 @@ class MemberSource:
             return JSONResponse({'pw_check':True})
         
 
-    @member_router.post(MEMBER_URL+"/update_member_info", summary="회원정보 수정")
+    @member_router.post(MEMBER_URL+"/update-member-info", summary="회원정보 수정")
     async def update_member_info(self, member_info:Member_update_info):
         member_info = jsonable_encoder(member_info)
         query = update(Member).where(Member.id==member_info["id"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"])
         result = await session.execute(query)
         await session.commit()
         return {"update_member_info": True}
+    
+    @member_router.post(MEMBER_URL+"/upload-profile", summary="프로필 이미지 업로드")
+    async def upload_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
+        member_info = jsonable_encoder(member_info)
+        image = await uploadfile2array(upload_file)
+        background_tasks.add_task(profile_image_save,image,member_info)
+        return {"response":200}
+    
+    # @member.router.post(MEMBER_URL+"/delete-profile", summary="회원정보 수정")

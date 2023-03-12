@@ -11,7 +11,9 @@ class Member_logout(BaseModel):
 
 class Member_withdrawal(BaseModel):
     id : EmailStr
-
+    
+class Member_upload(BaseModel):
+    id : EmailStr
 
 class Member_signup(BaseModel):
     id : EmailStr
