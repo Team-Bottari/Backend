@@ -1,4 +1,4 @@
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,FileResponse
 from fastapi import Body
 from fastapi_utils.cbv import cbv
 from fastapi import UploadFile, File, Request
@@ -9,10 +9,9 @@ from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info,Member_upload
 from db import session, Member
 from sqlalchemy import select, update
-from utils import make_random_value,send_pw_mail, send_certificate_email,uploadfile2array,profile_image_save
+from utils import make_random_value,send_pw_mail, send_certificate_email,uploadfile2array,profile_image_save,profile_image_delete
 from fastapi import UploadFile
-import aiofiles
-import cv2
+from typing import Any,Union
 import datetime
 import os
 
@@ -159,11 +158,43 @@ class MemberSource:
         await session.commit()
         return {"update_member_info": True}
     
-    @member_router.post(MEMBER_URL+"/upload-profile", summary="프로필 이미지 업로드")
-    async def upload_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
+    
+    # 프로필 이미지 함수
+    @member_router.post(MEMBER_URL+"/upload-profile", summary="프로필 이미지 업로드",)
+    async def upload_profile(background_tasks : BackgroundTasks, upload_file :UploadFile,member_info=Body(...)):
         member_info = jsonable_encoder(member_info)
         image = await uploadfile2array(upload_file)
         background_tasks.add_task(profile_image_save,image,member_info)
         return {"response":200}
     
-    # @member.router.post(MEMBER_URL+"/delete-profile", summary="회원정보 수정")
+    @member_router.post(MEMBER_URL+"/get-profile-mini", summary="프로필 이미지 조회 mini")
+    async def get_profile_mini(member_info:Member_upload=Body(...)):
+        member_info = jsonable_encoder(member_info)
+        id = member_info["id"]
+        return FileResponse(os.path.join(STORAGE_DIR,id,"profile_mini.jpg"))
+    
+    @member_router.post(MEMBER_URL+"/get-profile-standard", summary="프로필 이미지 조회 standard")
+    async def get_profile_mini(member_info:Member_upload=Body(...)):
+        member_info = jsonable_encoder(member_info)
+        id = member_info["id"]
+        return FileResponse(os.path.join(STORAGE_DIR,id,"profile_standard.jpg"))
+    
+    @member_router.post(MEMBER_URL+"/get-profile-origin", summary="프로필 이미지 조회 origin")
+    async def get_profile_mini(member_info:Member_upload=Body(...)):
+        member_info = jsonable_encoder(member_info)
+        id = member_info["id"]
+        return FileResponse(os.path.join(STORAGE_DIR,id,"profile_origin.jpg"))
+    
+    @member_router.post(MEMBER_URL+"/update-profile", summary="프로필 이미지 업데이트")
+    async def upload_profile(background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
+        member_info = jsonable_encoder(member_info)
+        image = await uploadfile2array(upload_file)
+        background_tasks.add_task(profile_image_save,image,member_info)
+        return {"response":200}
+    
+    @member_router.post(MEMBER_URL+"/delete-profile", summary="프로필 이미지 삭제")
+    async def upload_profile(background_tasks : BackgroundTasks,member_info=Body(...)):
+        member_info = jsonable_encoder(member_info)
+        profile_image_delete(member_info)
+        return {"response":200}
+    

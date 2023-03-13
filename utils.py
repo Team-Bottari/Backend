@@ -6,6 +6,7 @@ import numpy as np
 import aiofiles
 import cv2
 import os
+import shutil
 from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS,DDNS,VERSION
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
@@ -155,10 +156,15 @@ def send_pw_mail(recvEmail,key):
 async def uploadfile2array(uploadfile):
     return np.array(Image.open(BytesIO(await uploadfile.read())))
 
-async def save_image(image,full_path):
+async def write_image(image,full_path):
     image_bytes = cv2.imencode(".jpg",image[:,:,::-1])[1].tobytes()
     async with aiofiles.open(full_path,"wb") as f:
         await f.write(image_bytes)
+        
+async def read_image(full_path):
+    async with aiofiles.open("full_path","rb") as f:
+        image_bytes = await f.read()
+    return cv2.imdecode(np.fromstring(image_bytes,dtype=np.uint8),cv2.IMREAD_COLOR)
 
 async def profile_image_save(image,member_info):
     member_info = ujson.loads(member_info)
@@ -173,7 +179,13 @@ async def profile_image_save(image,member_info):
     except:
         pass
     thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
-    await save_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_mini.jpg"))
+    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_mini.jpg"))
     standard_image = cv2.resize(image,(640,int(h*(640/w))))
-    await save_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_standard.jpg"))
-    await save_image(image,os.path.join(STORAGE_DIR,member_info['id'],"profile_origin.jpg"))
+    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_standard.jpg"))
+    await write_image(image,os.path.join(STORAGE_DIR,member_info['id'],"profile_origin.jpg"))
+    
+async def profile_image_delete(member_info):
+    member_info = ujson.loads(member_info)
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_mini.jpg'))
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_standard.jpg'))
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_origin.jpg'))

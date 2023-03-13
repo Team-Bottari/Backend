@@ -52,7 +52,7 @@ app.add_middleware(
 async def init():
     logger.add("log/BackendServer_{time:YYYY-MM-DD}.log",format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>\n<blue>{message}</blue>\n",rotation="1 days",enqueue=True)
 
-@app.middleware("http")
+# @app.middleware("http")
 async def watch_log(request: Request, call_next,):
     start_log,start_time = await request_parse(request)
     response = await call_next(request)
