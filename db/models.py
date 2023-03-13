@@ -25,17 +25,9 @@ class Member(Base):
 
         
 class Member_Admin(ModelView,model=Member):
-    column_list = [
-        Member.id,
-        Member.pw,
-        Member.nick_name,
-        Member.phone,
-        Member.birth,
-        Member.credit_rating,
-        Member.profile_picture,
-        Member.withdrawal,
-        Member.create_at,
-        Member.last_login,
-        Member.last_logout,
-        Member.certificate_num,
-        Member.certificate_status]
+    column_list = [ eval(f"Member.{column.name}") for column in Member().__table__.columns]
+    
+if __name__=="__main__":
+    pass
+
+    
