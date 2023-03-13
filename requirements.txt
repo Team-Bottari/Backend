@@ -8,3 +8,5 @@ pymysql
 aiomysql
 fastapi-mail
 sqladmin
+opencv-python
+aiofiles

@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-os.system(f"pip3 install -r {Path(__file__).parent/'requirements.txt'}")
 from settings import DOCS_URL,REDOC_URL
 from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
