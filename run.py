@@ -6,6 +6,7 @@ from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
 from source.member import member_router
 from source.verification import verification_router
+from source.member.profile import profile_router
 from fastapi_utils.tasks import repeat_every
 from loguru import logger
 from db import engine
@@ -36,6 +37,7 @@ admin.add_view(Member_Admin)
 
 app.include_router(member_router)
 app.include_router(verification_router)
+app.include_router(profile_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -52,7 +54,7 @@ app.add_middleware(
 async def init():
     logger.add("log/BackendServer_{time:YYYY-MM-DD}.log",format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>\n<blue>{message}</blue>\n",rotation="1 days",enqueue=True)
 
-# @app.middleware("http")
+@app.middleware("http")
 async def watch_log(request: Request, call_next,):
     start_log,start_time = await request_parse(request)
     response = await call_next(request)

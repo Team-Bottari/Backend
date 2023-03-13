@@ -6,6 +6,7 @@ MAIN_DIR = str(Path(__file__).parent)
 MAIN_URL = "/api"+f"/{VERSION}"
 
 MEMBER_URL = MAIN_URL+"/member"
+PROFILE_URL = MEMBER_URL+"/profile"
 VERIFICATION_URL = MAIN_URL+"/verification/{random_value}"
 
 EMAILS = [

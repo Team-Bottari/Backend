@@ -167,6 +167,11 @@ async def read_image(full_path):
     return cv2.imdecode(np.fromstring(image_bytes,dtype=np.uint8),cv2.IMREAD_COLOR)
 
 async def profile_image_save(image,member_info):
+    print(member_info)
+    print(member_info)
+    print(member_info)
+    print(member_info)
+    print(member_info)
     member_info = ujson.loads(member_info)
     try:
         h,w,_ = image.shape
