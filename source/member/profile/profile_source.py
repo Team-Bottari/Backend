@@ -14,7 +14,11 @@ import os
 
 
 profile_router = InferringRouter()
-
+BASIC_PROFILE_RESPONSES = {
+    "mini":FileResponse(os.path.join(MAIN_DIR,"static","profile_mini.jpg")),
+    "standard":FileResponse(os.path.join(MAIN_DIR,"static","profile_standard.jpg")),
+    "origin":FileResponse(os.path.join(MAIN_DIR,"static","profile_origin.jpg")),
+}
 
 @cbv(profile_router)
 class ProfileSource:
@@ -33,7 +37,7 @@ class ProfileSource:
         if os.path.isfile(profile_path):
             return FileResponse(profile_path)
         else:
-            return FileResponse(os.path.join(MAIN_DIR,"static","profile_mini.jpg"))
+            return BASIC_PROFILE_RESPONSES['mini']
     
     @profile_router.post(PROFILE_URL+"/standard", summary="프로필 이미지 조회 standard")
     async def get_profile_standard(self,member_info:Member_upload=Body(...)):
@@ -43,7 +47,7 @@ class ProfileSource:
         if os.path.isfile(profile_path):
             return FileResponse(profile_path)
         else:
-            return FileResponse(os.path.join(MAIN_DIR,"static","profile_standard.jpg"))
+            return BASIC_PROFILE_RESPONSES['standard']
     
     @profile_router.post(PROFILE_URL+"/origin", summary="프로필 이미지 조회 origin")
     async def get_profile_origin(self,member_info:Member_upload=Body(...)):
@@ -53,7 +57,7 @@ class ProfileSource:
         if os.path.isfile(profile_path):
             return FileResponse(profile_path)
         else:
-            return FileResponse(os.path.join(MAIN_DIR,"static","profile_origin.jpg"))
+            return BASIC_PROFILE_RESPONSES['origin']
     
     @profile_router.post(PROFILE_URL+"/update", summary="프로필 이미지 업데이트")
     async def upload_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
