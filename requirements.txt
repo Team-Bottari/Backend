@@ -4,7 +4,6 @@ SQLAlchemy
 fastapi-utils
 gunicorn
 loguru
-pymysql
 aiomysql
 fastapi-mail
 sqladmin
