@@ -6,9 +6,10 @@ from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from config import PROFILE_URL
 from fastapi_utils.inferring_router import InferringRouter
-from utils import uploadfile2array,profile_image_save,profile_image_delete
+from utils import uploadfile2array,profile_image_save,profile_image_delete,read_profile_ext
 from .profile_data import Member_upload
 from config import STORAGE_DIR,MAIN_DIR
+from pathlib import Path
 import os
 
 
@@ -23,17 +24,19 @@ BASIC_PROFILE_RESPONSES = {
 @cbv(profile_router)
 class ProfileSource:
     @profile_router.post(PROFILE_URL+"/upload", summary="프로필 이미지 업로드",)
-    async def upload_profile(background_tasks : BackgroundTasks, upload_file :UploadFile,member_info=Body(...)):
+    async def upload_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile,member_info=Body(...)):
         member_info = jsonable_encoder(member_info)
+        ext = Path(str(upload_file.filename)).suffix
         image = await uploadfile2array(upload_file)
-        background_tasks.add_task(profile_image_save,image,member_info)
+        background_tasks.add_task(profile_image_save,image,member_info,ext)
         return {"response":200}
     
     @profile_router.post(PROFILE_URL+"/mini", summary="프로필 이미지 조회 mini")
     async def get_profile_mini(self,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
         id = member_info["id"]
-        profile_path = os.path.join(STORAGE_DIR,id,"profile_mini.jpg")
+        ext = await read_profile_ext(member_info)
+        profile_path = os.path.join(STORAGE_DIR,id,f"profile_mini{ext}")
         if os.path.isfile(profile_path):
             return FileResponse(profile_path)
         else:
@@ -43,7 +46,8 @@ class ProfileSource:
     async def get_profile_standard(self,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
         id = member_info["id"]
-        profile_path = os.path.join(STORAGE_DIR,id,"profile_standard.jpg")
+        ext = await read_profile_ext(member_info)
+        profile_path = os.path.join(STORAGE_DIR,id,f"profile_standard{ext}")
         if os.path.isfile(profile_path):
             return FileResponse(profile_path)
         else:
@@ -53,22 +57,25 @@ class ProfileSource:
     async def get_profile_origin(self,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
         id = member_info["id"]
-        profile_path = os.path.join(STORAGE_DIR,id,"profile_origin.jpg")
+        ext = await read_profile_ext(member_info)
+        profile_path = os.path.join(STORAGE_DIR,id,f"profile_origin{ext}")
         if os.path.isfile(profile_path):
             return FileResponse(profile_path)
         else:
             return BASIC_PROFILE_RESPONSES['origin']
     
     @profile_router.post(PROFILE_URL+"/update", summary="프로필 이미지 업데이트")
-    async def upload_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
+    async def update_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
         member_info = jsonable_encoder(member_info)
+        await profile_image_delete(member_info)
+        ext = Path(str(upload_file.filename)).suffix
         image = await uploadfile2array(upload_file)
-        background_tasks.add_task(profile_image_save,image,member_info)
+        background_tasks.add_task(profile_image_save,image,member_info,ext)
         return {"response":200}
     
     @profile_router.post(PROFILE_URL+"/delete", summary="프로필 이미지 삭제")
-    async def upload_profile(self,background_tasks : BackgroundTasks,member_info=Body(...)):
+    async def delete_profile(self,background_tasks : BackgroundTasks,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
-        profile_image_delete(member_info)
+        await profile_image_delete(member_info)
         return {"response":200}
     

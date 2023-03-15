@@ -15,6 +15,7 @@ from config import EMAILS,STORAGE_DIR
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from io import BytesIO
+from pathlib import Path
 from PIL import Image
 
 CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -157,7 +158,7 @@ async def uploadfile2array(uploadfile):
     return np.array(Image.open(BytesIO(await uploadfile.read())))
 
 async def write_image(image,full_path):
-    image_bytes = cv2.imencode(".jpg",image[:,:,::-1])[1].tobytes()
+    image_bytes = cv2.imencode(".jpg",image[:,:,:])[1].tobytes()
     async with aiofiles.open(full_path,"wb") as f:
         await f.write(image_bytes)
         
@@ -166,17 +167,16 @@ async def read_image(full_path):
         image_bytes = await f.read()
     return cv2.imdecode(np.fromstring(image_bytes,dtype=np.uint8),cv2.IMREAD_COLOR)
 
-async def profile_image_save(image,member_info):
-    print(member_info)
-    print(member_info)
-    print(member_info)
-    print(member_info)
-    print(member_info)
+async def profile_image_save(image_,member_info,ext):
     member_info = ujson.loads(member_info)
     try:
-        h,w,_ = image.shape
+        h,w,c = image_.shape
+        if c==4:
+            image = cv2.cvtColor(image_,cv2.COLOR_BGRA2RGBA)
+        else:
+            image = image_[:,:,::-1]
     except:
-        error = image.shape
+        error = image_.shape
         print(error)
         exit()
     try:
@@ -184,13 +184,27 @@ async def profile_image_save(image,member_info):
     except:
         pass
     thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
-    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_mini.jpg"))
+    await write_profile_ext(member_info,ext)
+    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_mini{ext}"))
     standard_image = cv2.resize(image,(640,int(h*(640/w))))
-    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],"profile_standard.jpg"))
-    await write_image(image,os.path.join(STORAGE_DIR,member_info['id'],"profile_origin.jpg"))
+    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_standard{ext}"))
+    await write_image(image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_origin{ext}"))
     
 async def profile_image_delete(member_info):
-    member_info = ujson.loads(member_info)
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_mini.jpg'))
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_standard.jpg'))
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_origin.jpg'))
+    ext = await read_profile_ext(member_info)
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],f'profile_mini{ext}'))
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],f'profile_standard{ext}'))
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],f'profile_origin{ext}'))
+    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_ext.txt'))
+    
+async def read_profile_ext(member_info):
+    try:
+        async with aiofiles.open(os.path.join(STORAGE_DIR,member_info['id'],"profile_ext.txt"), "r") as f:
+            result = await f.readlines()
+        return result[0].strip()
+    except:
+        return None
+
+async def write_profile_ext(member_info,ext):
+    async with aiofiles.open(os.path.join(STORAGE_DIR,member_info['id'],"profile_ext.txt"),"w") as f:
+        await f.write(ext)
