@@ -46,7 +46,10 @@ class MemberSource:
         #TODO 암호화 필요.
         
         # FileStorage 만들기
-        os.makedirs(os.path.join(STORAGE_DIR,member_info["id"]))
+        try:
+            os.makedirs(os.path.join(STORAGE_DIR,member_info["id"]))
+        except:
+            pass
         return JSONResponse({"sign_up":True})
 
     @member_router.post(MEMBER_URL+"/login", summary="로그인",)

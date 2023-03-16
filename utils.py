@@ -77,24 +77,94 @@ def make_log(start_log,end_log,start_time,end_time):
 def make_certificate_html(key):
     HTML = f"""
     <html>
-        <head>
-            <meta charset='utf-8'>
-            <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-            <title>Page Title</title>
-            <meta name='viewport' content='width=device-width, initial-scale=1'>
-            <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-            <script src='main.js'></script>
-        </head>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>Page Title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+        <script src="main.js"></script>
+    </head>
     <body>
-        <div>
-            <h3>안녕하세요 GYM-Bottari 입니다.</h3>
-        </div>
-        <p>요청에 동의하시면 아래 버튼을 눌러주세요.</p>
-        <form action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}",method="get">
-            <button type>인증에 동의합니다.</button>
+        <div
+        style="
+            border: 2px solid rgb(81, 13, 229);
+            background-color: rgb(255, 255, 255);
+            border-left: 0px;
+            border-right: 0px;
+            border-bottom: 1px dotted black;
+            margin: auto;
+
+            width: 500px;
+            height: 500px;
+            position: relative;
+            top: 300px;
+        "
+        >
+        <header style="line-height: 3px; text-align: center">
+            <p>Gym-bottari</p>
+
+            <p
+            style="
+                color: rgb(81, 13, 229);
+                font-size: 30px;
+                line-height: 10px;
+                font-weight: bold;
+            "
+            >
+            이메일 인증
+            </p>
+        </header>
+        <p style="font-size: 20px; color: black">
+            안녕하세요 GYM-Bottari 입니다.
+            <br />
+
+            메일 인증 요청에 동의하시면 아래 인증동의 버튼을 눌러 회원가입을
+            진행해주세요.이용해주셔서 감사합니다.
+        </p>
+
+        <form
+            action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}"
+            ,method="get"
+        >
+            <button
+            style="
+                color: rgb(81, 13, 229);
+
+                background-color: rgb(81, 13, 229);
+                color: white;
+                border: rgb(81, 13, 229);
+                height: 30px;
+                width: 150px;
+            "
+            >
+            인증동의
+            </button>
         </form>
+        </div>
     </body>
-    </html>"""
+    </html>
+    """
+    # HTML = f"""
+    # <html>
+    #     <head>
+    #         <meta charset='utf-8'>
+    #         <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    #         <title>Page Title</title>
+    #         <meta name='viewport' content='width=device-width, initial-scale=1'>
+    #         <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    #         <script src='main.js'></script>
+    #     </head>
+    # <body>
+    #     <div>
+    #         <h3>안녕하세요 GYM-Bottari 입니다.</h3>
+    #     </div>
+    #     <p>요청에 동의하시면 아래 버튼을 눌러주세요.</p>
+    #     <form action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}",method="get">
+    #         <button type>인증에 동의합니다.</button>
+    #     </form>
+    # </body>
+    # </html>"""
     return HTML
 
 def make_passwd_html(key):
