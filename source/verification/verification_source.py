@@ -6,6 +6,7 @@ from config import VERIFICATION_URL
 from db import session, Member
 from datetime import datetime,timedelta
 from sqlalchemy import update, select
+from fastapi.responses import RedirectResponse
 verification_router = InferringRouter()
 
 @cbv(verification_router)
@@ -25,13 +26,11 @@ class Verification:
                 query = update(Member).where(Member.certificate_num==random_value).values(certificate_status=True)
                 result = await session.execute(query)
                 await session.commit()
-                return {"result":"이메일 인증 완료"}
+                return RedirectResponse("https://google.com")
             else:
-                return {"result":'이메일 인증 시간 초과'}
+                return RedirectResponse("https://naver.com")
             # if member_enc['create_at']
         
         
 
 
-        query = update(Member).where(Member.certificate_num==random_value).values(certificate_status=True)
-        return {"random_value":random_value}

@@ -15,6 +15,7 @@ from db import Member_Admin
 from utils import request_parse,response_parse,make_log,make_run_bash
 
 
+
 origins = [
     "http://localhost",
     "http://localhost:8080",
@@ -27,7 +28,6 @@ origins = [
 ]
 
 
-
 app = FastAPI(docs_url=DOCS_URL,redoc_url=REDOC_URL,title = "GYM-Bottari")
 authentication_backend = MyBackend(secret_key="...")
 admin = Admin(app ,engine.engine ,title="회원 관리자 페이지",authentication_backend=authentication_backend)
@@ -37,6 +37,8 @@ admin.add_view(Member_Admin)
 app.include_router(member_router)
 app.include_router(verification_router)
 app.include_router(profile_router)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

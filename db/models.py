@@ -26,7 +26,8 @@ class Member(Base):
         
 class Member_Admin(ModelView,model=Member):
     column_list = [ eval(f"Member.{column.name}") for column in Member().__table__.columns]
-    
+    page_size = 50
+    page_size_options = [25, 50, 100, 200]
 if __name__=="__main__":
     pass
 
