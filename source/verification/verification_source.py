@@ -26,9 +26,9 @@ class Verification:
                 query = update(Member).where(Member.certificate_num==random_value).values(certificate_status=True)
                 result = await session.execute(query)
                 await session.commit()
-                return RedirectResponse("https://google.com")
+                return RedirectResponse("https://gym-bottari.suveloper.com/")
             else:
-                return RedirectResponse("https://naver.com")
+                return RedirectResponse("https://gym-bottari.suveloper.com/")
             # if member_enc['create_at']
         
         
