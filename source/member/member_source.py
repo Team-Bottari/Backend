@@ -19,7 +19,7 @@ class MemberSource:
     @member_router.post(MEMBER_URL+"/override", summary="아이디 중복 확인")
     async def is_override(self,member_info: Member_override):
         member_info = jsonable_encoder(member_info)
-        query = select(Member).where(Member.id==member_info["id"])
+        query = select(Member).where(Member.id==member_info["id"], Member.withdrawal == False, Member.certificate_status == True)
         result = await session.execute(query)
         if result.first() is None:
             return {"override":False}
@@ -37,6 +37,12 @@ class MemberSource:
         random_value = make_random_value()
         member_info['certificate_num'] = random_value # 인증번호
 
+        # 아이디 중복확인
+        query = select(Member).where(Member.id==member_info["id"], Member.withdrawal == False, Member.certificate_status == True)
+        result = await session.execute(query)
+        if result.first() is not None:
+            return {"result":"사용중인 아이디가 있습니다."}
+        
         # 회원가입
         member = Member(**member_info)
         session.add(member)
