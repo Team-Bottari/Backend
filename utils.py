@@ -17,6 +17,7 @@ from email.mime.multipart import MIMEMultipart
 from io import BytesIO
 from pathlib import Path
 from PIL import Image
+import base64
 
 CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -75,96 +76,74 @@ def make_log(start_log,end_log,start_time,end_time):
     return start_log+"\n"+end_log+f"\n\t처리시간 : {str(end_time-start_time)[:7]}"
 
 def make_certificate_html(key):
+    # <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     HTML = f"""
     <html>
     <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Page Title</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-        <script src="main.js"></script>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script src="main.js"></script>
     </head>
     <body>
-        <div
-        style="
-            border: 2px solid rgb(81, 13, 229);
-            background-color: rgb(255, 255, 255);
-            border-left: 0px;
-            border-right: 0px;
-            border-bottom: 1px dotted black;
-            margin: auto;
+    <div style="
+        border: 2px solid rgb(81, 13, 229);
+        background-color: rgb(255, 255, 255);
+        border-left: 0px;
+        border-right: 0px;
+        border-bottom: 1px dotted black;
+        margin: auto;
 
-            width: 500px;
-            height: 500px;
-            position: relative;
-            top: 300px;
+        width: 500px;
+        height: 500px;
+        position: relative;
+        top: 30px;
+    ">
+    <header style="line-height: 3px; text-align: center">
+    <p style="margin:10px">Gym-bottari</p>
+
+    <p style="
+        color: rgb(81, 13, 229);
+        font-size: 30px;
+        line-height: 10px;
+        font-weight: bold;
+        margin:20px
+        ">
+        이메일 인증
+    </p>
+    </header>
+    <p style="font-size: 20px; color: black">
+    안녕하세요 GYM-Bottari 입니다.
+    <br>
+
+    메일 인증 요청에 동의하시면 아래 인증동의 버튼을 눌러 회원가입을
+    진행해주세요.이용해주셔서 감사합니다.
+    </p>
+
+    <form
+        action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}"
+        ,method="get"
+    >
+        <button
+        style="
+            color: rgb(81, 13, 229);
+
+            background-color: rgb(81, 13, 229);
+            color: white;
+            border: rgb(81, 13, 229);
+            height: 30px;
+            width: 150px;
         "
         >
-        <header style="line-height: 3px; text-align: center">
-            <p>Gym-bottari</p>
-
-            <p
-            style="
-                color: rgb(81, 13, 229);
-                font-size: 30px;
-                line-height: 10px;
-                font-weight: bold;
-            "
-            >
-            이메일 인증
-            </p>
-        </header>
-        <p style="font-size: 20px; color: black">
-            안녕하세요 GYM-Bottari 입니다.
-            <br />
-
-            메일 인증 요청에 동의하시면 아래 인증동의 버튼을 눌러 회원가입을
-            진행해주세요.이용해주셔서 감사합니다.
-        </p>
-
-        <form
-            action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}"
-            ,method="get"
-        >
-            <button
-            style="
-                color: rgb(81, 13, 229);
-
-                background-color: rgb(81, 13, 229);
-                color: white;
-                border: rgb(81, 13, 229);
-                height: 30px;
-                width: 150px;
-            "
-            >
-            인증동의
-            </button>
-        </form>
-        </div>
+        인증동의
+        </button>
+    </form>
+    </div>
     </body>
     </html>
     """
-    # HTML = f"""
-    # <html>
-    #     <head>
-    #         <meta charset='utf-8'>
-    #         <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    #         <title>Page Title</title>
-    #         <meta name='viewport' content='width=device-width, initial-scale=1'>
-    #         <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-    #         <script src='main.js'></script>
-    #     </head>
-    # <body>
-    #     <div>
-    #         <h3>안녕하세요 GYM-Bottari 입니다.</h3>
-    #     </div>
-    #     <p>요청에 동의하시면 아래 버튼을 눌러주세요.</p>
-    #     <form action="http://{DDNS}:{PORT}/api/{VERSION}/verification/{key}",method="get">
-    #         <button type>인증에 동의합니다.</button>
-    #     </form>
-    # </body>
-    # </html>"""
     return HTML
 
 def make_passwd_html(key):
@@ -260,6 +239,35 @@ async def profile_image_save(uploadfile,member_info,ext):
     standard_image = cv2.resize(image,(640,int(h*(640/w))))
     await write_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_standard{ext}"))
     await write_image(image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_origin{ext}"))
+
+async def profile_image_save(request):
+    request_list = await request.form()
+    header,image_base64 = str(request_list["upload_file"]).split(",")
+    image_bytes = base64.b64decode(image_base64)
+    image_ = cv2.imdecode(np.fromstring(image_bytes,np.uint8),cv2.IMREAD_COLOR)
+    ext = header[header.find("/")+1:header.find(";")]
+    member_info = ujson.loads(request_list["member_info"])
+    try:
+        h,w,c = image_.shape
+        if c==4:
+            image = cv2.cvtColor(image_,cv2.COLOR_BGRA2RGBA)
+        else:
+            image = image_[:,:,:]
+    except:
+        error = image_.shape
+        print(error)
+        exit()
+    try:
+        os.makedirs(os.path.join(STORAGE_DIR,member_info['id'],))
+    except:
+        pass
+    thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
+    await write_profile_ext(member_info,ext)
+    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_mini{ext}"))
+    standard_image = cv2.resize(image,(640,int(h*(640/w))))
+    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_standard{ext}"))
+    await write_image(image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_origin{ext}"))
+    
     
 async def profile_image_delete(member_info):
     ext = await read_profile_ext(member_info)

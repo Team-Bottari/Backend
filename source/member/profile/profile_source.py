@@ -1,5 +1,5 @@
 from fastapi.responses import FileResponse
-from fastapi import Body
+from fastapi import File,Form,Body,Request
 from fastapi_utils.cbv import cbv
 from fastapi import UploadFile
 from fastapi.background import BackgroundTasks
@@ -10,7 +10,14 @@ from utils import profile_image_save,profile_image_delete,read_profile_ext
 from .profile_data import Member_upload
 from config import STORAGE_DIR,MAIN_DIR
 from pathlib import Path
+from typing import Any
+from pydantic import EmailStr
+import base64
+import numpy as np
 import os
+import cv2
+import io
+from PIL import Image
 
 
 
@@ -21,13 +28,13 @@ BASIC_PROFILE_RESPONSES = {
     "origin":FileResponse(os.path.join(MAIN_DIR,"static","profile_origin.jpg")),
 }
 
+
 @cbv(profile_router)
 class ProfileSource:
     @profile_router.post(PROFILE_URL+"/upload", summary="프로필 이미지 업로드",)
-    async def upload_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile,member_info=Body(...)):
-        member_info = jsonable_encoder(member_info)
-        ext = Path(str(upload_file.filename)).suffix
-        background_tasks.add_task(profile_image_save,upload_file,member_info,ext)
+    async def upload_profile(self, request: Request,background_task = BackgroundTasks):
+        await profile_image_save(request)
+        #background_task.add_task(profile_image_save,request)
         return {"response":200}
     
     @profile_router.post(PROFILE_URL+"/mini", summary="프로필 이미지 조회 mini")
@@ -64,16 +71,14 @@ class ProfileSource:
             return BASIC_PROFILE_RESPONSES['origin']
     
     @profile_router.post(PROFILE_URL+"/update", summary="프로필 이미지 업데이트")
-    async def update_profile(self,background_tasks : BackgroundTasks, upload_file :UploadFile | None=None,member_info=Body(...)):
-        member_info = jsonable_encoder(member_info)
-        ext = Path(str(upload_file.filename)).suffix
-        background_tasks.add_task(profile_image_delete,member_info)
-        background_tasks.add_task(profile_image_save,upload_file,member_info,ext)
+    async def upldate_profile(self, request: Request,background_task = BackgroundTasks):
+        await profile_image_save(request)
+        #background_task.add_task(profile_image_save,request)
         return {"response":200}
     
     @profile_router.post(PROFILE_URL+"/delete", summary="프로필 이미지 삭제")
     async def delete_profile(self,background_tasks : BackgroundTasks,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
         background_tasks.add_task(profile_image_delete,member_info)
-        return {"response":200}
+        return BASIC_PROFILE_RESPONSES['standard']
     
