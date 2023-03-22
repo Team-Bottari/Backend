@@ -11,8 +11,9 @@ from loguru import logger
 from db import engine
 from admin import MyBackend
 from sqladmin import Admin
-from db import Member_Admin
-from utils import request_parse,response_parse,make_log,make_run_bash
+from db import Member_Admin,Posting_Admin
+from utils import request_parse,response_parse,make_log,make_run_bash,init_fake_db
+
 
 
 
@@ -32,6 +33,7 @@ app = FastAPI(docs_url=DOCS_URL,redoc_url=REDOC_URL,title = "GYM-Bottari")
 authentication_backend = MyBackend(secret_key="...")
 admin = Admin(app ,engine.engine ,title="회원 관리자 페이지",authentication_backend=authentication_backend)
 admin.add_view(Member_Admin)
+admin.add_view(Posting_Admin)
 
 
 app.include_router(member_router)
@@ -41,19 +43,17 @@ app.include_router(profile_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-
-
-
 @app.on_event("startup")
 async def init():
     logger.add("log/BackendServer_{time:YYYY-MM-DD}.log",format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>\n<blue>{message}</blue>\n",rotation="1 days",enqueue=True)
+    await init_fake_db()
 
 @app.middleware("http")
 async def watch_log(request: Request, call_next,):

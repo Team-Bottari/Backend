@@ -7,15 +7,14 @@ import aiofiles
 import cv2
 import os
 import shutil
-from settings import DEPLOY_MODE,HOST,PORT,RELOAD,WORKERS,DDNS,VERSION
+from settings import DEPLOY_MODE,HOST,PORT,WORKERS,DDNS,VERSION
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import iterate_in_threadpool
-from config import EMAILS,STORAGE_DIR
+from config import EMAILS,STORAGE_DIR,MAIN_DIR
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from io import BytesIO
-from pathlib import Path
 from PIL import Image
 import base64
 
@@ -287,3 +286,32 @@ async def read_profile_ext(member_info):
 async def write_profile_ext(member_info,ext):
     async with aiofiles.open(os.path.join(STORAGE_DIR,member_info['id'],"profile_ext.txt"),"w") as f:
         await f.write(ext)
+
+async def init_fake_db():
+    if os.path.isdir(os.path.join(MAIN_DIR,'fake-posting-db')):
+        if os.path.isfile(os.path.join(MAIN_DIR,'fake-posting-db',"simples.json")):
+            return
+        else:
+            await write_fake_simple_db([])
+    else:
+        os.mkdir(os.path.join(MAIN_DIR,'fake-posting-db'))
+        await write_fake_simple_db([])
+
+async def read_fake_simple_db(keyword=None):
+    async with aiofiles.open(os.path.join(MAIN_DIR,"fake-posting-db","simples.json"),"r") as f:
+        postings = ujson.loads( await f.read())
+    if keyword is None:
+        return postings
+    return list(filter(lambda x:keyword in x['title'],postings))
+
+def add_fake_simple_db(db,posting):
+    del posting["content"]
+    del posting["images"]
+    db.append(posting)
+    return db
+
+async def write_fake_simple_db(json_object):
+    async with aiofiles.open(os.path.join(MAIN_DIR,"fake-posting-db","simples.json"),"w") as f:
+        await f.write(ujson.dumps(json_object,indent=2,ensure_ascii=False))
+
+    

@@ -9,6 +9,9 @@ MEMBER_URL = MAIN_URL+"/member"
 PROFILE_URL = MEMBER_URL+"/profile"
 VERIFICATION_URL = MAIN_URL+"/verification/{random_value}"
 
+POSTING_URL = MAIN_URL+"/posting"
+POSTING_ALL_URL = MAIN_URL+"/posting/all"
+
 EMAILS = [
     {
         "email":"kimsuhyun72@naver.com",
