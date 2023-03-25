@@ -21,3 +21,14 @@ class PostingSource:
         session.add(posting)
         await session.commit()
         return {"response":200}
+    
+    @posting_router.get(POSTING_URL+"/list")
+    async def posting_list(self,keyword : str = None):
+        if keyword is not None:
+            query = select(Posting).filter(Posting.title.like(f"%{keyword}%")).order_by(Posting.create_at)
+        else:
+            query = select(Posting).order_by(Posting.create_at)
+        result = await session.execute(query)
+        list_tems = jsonable_encoder(result.all())
+        return {"response":200,"items":list_tems}
+    

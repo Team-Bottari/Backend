@@ -64,7 +64,6 @@ class MemberSource:
         member_info = jsonable_encoder(member_info)
         query = select(Member).where(Member.id==member_info["id"], Member.pw == member_info['pw'], Member.withdrawal == False, Member.certificate_status == True)
         result = await session.execute(query)
-
         if result.first() is None:
             return {"sign_in": False}
         else:
