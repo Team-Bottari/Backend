@@ -31,7 +31,7 @@ class ProfileSource:
     @profile_router.post(PROFILE_URL+"/mini", summary="프로필 이미지 조회 mini")
     async def get_profile_mini(self,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
-        id = member_info["id"]
+        id = member_info["email"]
         ext = await read_profile_ext(member_info)
         profile_path = os.path.join(STORAGE_DIR,id,f"profile_mini{ext}")
         if os.path.isfile(profile_path):
@@ -42,7 +42,7 @@ class ProfileSource:
     @profile_router.post(PROFILE_URL+"/standard", summary="프로필 이미지 조회 standard")
     async def get_profile_standard(self,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
-        id = member_info["id"]
+        id = member_info["email"]
         ext = await read_profile_ext(member_info)
         profile_path = os.path.join(STORAGE_DIR,id,f"profile_standard{ext}")
         if os.path.isfile(profile_path):
@@ -53,7 +53,7 @@ class ProfileSource:
     @profile_router.post(PROFILE_URL+"/origin", summary="프로필 이미지 조회 origin")
     async def get_profile_origin(self,member_info:Member_upload=Body(...)):
         member_info = jsonable_encoder(member_info)
-        id = member_info["id"]
+        id = member_info["email"]
         ext = await read_profile_ext(member_info)
         profile_path = os.path.join(STORAGE_DIR,id,f"profile_origin{ext}")
         if os.path.isfile(profile_path):
