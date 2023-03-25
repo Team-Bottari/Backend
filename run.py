@@ -1,9 +1,9 @@
 import os
-from pathlib import Path
 from settings import DOCS_URL,REDOC_URL
 from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
 from source.member import member_router
+from source.posting import posting_router
 from source.verification import verification_router
 from source.member.profile import profile_router
 from fastapi_utils.tasks import repeat_every
@@ -12,7 +12,7 @@ from db import engine
 from admin import MyBackend
 from sqladmin import Admin
 from db import Member_Admin,Posting_Admin
-from utils import request_parse,response_parse,make_log,make_run_bash,init_fake_db
+from utils import request_parse,response_parse,make_log,make_run_bash
 
 
 
@@ -39,6 +39,7 @@ admin.add_view(Posting_Admin)
 app.include_router(member_router)
 app.include_router(verification_router)
 app.include_router(profile_router)
+app.include_router(posting_router)
 
 
 app.add_middleware(
@@ -53,7 +54,6 @@ app.add_middleware(
 @app.on_event("startup")
 async def init():
     logger.add("log/BackendServer_{time:YYYY-MM-DD}.log",format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>\n<blue>{message}</blue>\n",rotation="1 days",enqueue=True)
-    await init_fake_db()
 
 @app.middleware("http")
 async def watch_log(request: Request, call_next,):

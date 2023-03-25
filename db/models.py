@@ -36,7 +36,7 @@ class Posting(Base):
     content = Column(TEXT, nullable=False)
     price = Column(BIGINT, nullable=False)
     sold_out = Column(BOOLEAN, nullable=False,)
-    member_id = Column(BIGINT, ForeignKey('Member.id'),nullable=False)
+    member_id = Column(BIGINT, ForeignKey('member.member_id'),nullable=False)
     create_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
     image_path = Column(JSON,nullable=True)
     views = Column(BIGINT, nullable=False)

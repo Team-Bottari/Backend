@@ -5,9 +5,10 @@ from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL,STORAGE_DIR
 from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info
+from .member_utils import send_pw_mail, send_certificate_email
 from db import session, Member
 from sqlalchemy import select, update
-from utils import make_random_value,send_pw_mail, send_certificate_email,uploadfile2array,profile_image_save,profile_image_delete
+from utils import make_random_value
 import datetime
 import os
 
