@@ -160,4 +160,5 @@ async def update_poting_create(posting,member_id):
     posting["sold_out"]=False
     posting["update_date"]=datetime.now()
     posting["member_id"]=member_id
+    del posting["email"]
     return posting
