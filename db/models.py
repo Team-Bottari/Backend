@@ -8,7 +8,7 @@ Base = declarative_base()
 class Member(Base):
     __tablename__ = "member"
     member_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True)
-    id = Column(TEXT, nullable=False)
+    email = Column(TEXT, nullable=False)
     pw = Column(TEXT, nullable=False)
     nick_name = Column(TEXT, nullable=False)
     name = Column(TEXT, nullable=False)

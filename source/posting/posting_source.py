@@ -2,6 +2,7 @@ from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
 from config import POSTING_URL
 from .posting_data import Posting_create
+from fastapi import UploadFile
 from fastapi.encoders import jsonable_encoder
 from utils import update_poting_create
 from db import session, Member, Posting
@@ -19,8 +20,14 @@ class PostingSource:
         posting_info = await update_poting_create(posting,member_id)
         posting = Posting(**posting_info)
         session.add(posting)
-        await session.commit()
+        result = await session.commit()
+        print(jsonable_encoder(result))
         return {"response":200}
+    
+    @posting_router.post(POSTING_URL+"/image/{posting_id}/{image_id}")
+    async def create_posting_image(self,posting_id:int,image_id:int,image:UploadFile(...)):
+        
+        return
     
     @posting_router.get(POSTING_URL+"/list")
     async def posting_list(self,keyword : str = None):
@@ -31,4 +38,5 @@ class PostingSource:
         result = await session.execute(query)
         list_tems = jsonable_encoder(result.all())
         return {"response":200,"items":list_tems}
+    
     
