@@ -153,12 +153,14 @@ async def write_profile_ext(member_info,ext):
 
 
 async def update_poting_create(posting,member_id):
-    posting["create_at"] = datetime.now()
+    now = datetime.now()
+    now = datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
+    posting["create_at"] = now
     posting["views"]=0
     posting["like"]=0
     posting["update_nums"]=0
     posting["sold_out"]=False
-    posting["update_date"]=datetime.now()
+    posting["update_date"]=now
     posting["member_id"]=member_id
     del posting["email"]
     return posting
