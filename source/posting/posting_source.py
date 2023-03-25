@@ -21,7 +21,6 @@ class PostingSource:
         posting = Posting(**posting_info)
         session.add(posting)
         result = await session.commit()
-        print(jsonable_encoder(result))
         return {"response":200}
     
     @posting_router.post(POSTING_URL+"/image/{posting_id}/{image_id}")
