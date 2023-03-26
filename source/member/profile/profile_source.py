@@ -5,7 +5,7 @@ from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from config import PROFILE_URL
 from fastapi_utils.inferring_router import InferringRouter
-from utils import profile_image_save,profile_image_delete,read_profile_ext
+from .profile_utils import profile_image_save,profile_image_delete,read_profile_ext
 from .profile_data import Member_upload
 from config import STORAGE_DIR,MAIN_DIR
 import os

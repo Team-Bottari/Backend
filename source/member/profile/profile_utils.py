@@ -54,32 +54,32 @@ async def profile_image_save(request):
         print(error)
         exit()
     try:
-        os.makedirs(os.path.join(STORAGE_DIR,member_info['id'],))
+        os.makedirs(os.path.join(STORAGE_DIR,"profiles",member_info["email"],))
     except:
         pass
     thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
     await write_profile_ext(member_info,ext)
-    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_mini{ext}"))
+    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,"profiles",member_info["email"],f"profile_mini{ext}"),ext)
     standard_image = cv2.resize(image,(640,int(h*(640/w))))
-    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_standard{ext}"))
-    await write_image(image,os.path.join(STORAGE_DIR,member_info['id'],f"profile_origin{ext}"))
+    await write_image(standard_image,os.path.join(STORAGE_DIR,"profiles",member_info["email"],f"profile_standard{ext}"),ext)
+    await write_image(image,os.path.join(STORAGE_DIR,"profiles",member_info["email"],f"profile_origin{ext}"),ext)
     
     
 async def profile_image_delete(member_info):
     ext = await read_profile_ext(member_info)
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],f'profile_mini{ext}'))
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],f'profile_standard{ext}'))
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],f'profile_origin{ext}'))
-    os.remove(os.path.join(STORAGE_DIR,member_info['id'],'profile_ext.txt'))
+    os.remove(os.path.join(STORAGE_DIR,"profiles",member_info["email"],f'profile_mini{ext}'))
+    os.remove(os.path.join(STORAGE_DIR,"profiles",member_info["email"],f'profile_standard{ext}'))
+    os.remove(os.path.join(STORAGE_DIR,"profiles",member_info["email"],f'profile_origin{ext}'))
+    os.remove(os.path.join(STORAGE_DIR,"profiles",member_info["email"],'profile_ext.txt'))
     
 async def read_profile_ext(member_info):
     try:
-        async with aiofiles.open(os.path.join(STORAGE_DIR,member_info['id'],"profile_ext.txt"), "r") as f:
+        async with aiofiles.open(os.path.join(STORAGE_DIR,"profiles",member_info["email"],"profile_ext.txt"), "r") as f:
             result = await f.readlines()
         return result[0].strip()
     except:
         return None
 
 async def write_profile_ext(member_info,ext):
-    async with aiofiles.open(os.path.join(STORAGE_DIR,member_info['id'],"profile_ext.txt"),"w") as f:
+    async with aiofiles.open(os.path.join(STORAGE_DIR,"profiles",member_info["email"],"profile_ext.txt"),"w") as f:
         await f.write(ext)

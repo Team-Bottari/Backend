@@ -69,98 +69,21 @@ def make_log(start_log,end_log,start_time,end_time):
     return start_log+"\n"+end_log+f"\n\t처리시간 : {str(end_time-start_time)[:7]}"
 
 
-async def write_image(image,full_path):
-    image_bytes = cv2.imencode(".jpg",image[:,:,:])[1].tobytes()
+async def write_image(image,full_path,ext):
+    image_bytes = cv2.imencode(ext,image)[1].tobytes()
     async with aiofiles.open(full_path,"wb") as f:
         await f.write(image_bytes)
         
 async def read_image(full_path):
-    async with aiofiles.open("full_path","rb") as f:
+    async with aiofiles.open(full_path,"rb") as f:
         image_bytes = await f.read()
     return cv2.imdecode(np.fromstring(image_bytes,dtype=np.uint8),cv2.IMREAD_COLOR)
 
-async def profile_image_save(uploadfile,member_info,ext):
-    image_ = await uploadfile2array(uploadfile)
-    member_info = ujson.loads(member_info)
-    try:
-        h,w,c = image_.shape
-        if c==4:
-            image = cv2.cvtColor(image_,cv2.COLOR_BGRA2RGBA)
-        else:
-            image = image_[:,:,::-1]
-    except:
-        error = image_.shape
-        print(error)
-        exit()
-    try:
-        os.makedirs(os.path.join(STORAGE_DIR,member_info["email"],))
-    except:
-        pass
-    thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
-    await write_profile_ext(member_info,ext)
-    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info["email"],f"profile_mini{ext}"))
-    standard_image = cv2.resize(image,(640,int(h*(640/w))))
-    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info["email"],f"profile_standard{ext}"))
-    await write_image(image,os.path.join(STORAGE_DIR,member_info["email"],f"profile_origin{ext}"))
-
-async def profile_image_save(request):
-    request_list = await request.form()
-    header,image_base64 = str(request_list["upload_file"]).split(",")
-    image_bytes = base64.b64decode(image_base64)
-    image_ = cv2.imdecode(np.fromstring(image_bytes,np.uint8),cv2.IMREAD_COLOR)
-    ext = header[header.find("/")+1:header.find(";")]
-    member_info = ujson.loads(request_list["member_info"])
-    try:
-        h,w,c = image_.shape
-        if c==4:
-            image = cv2.cvtColor(image_,cv2.COLOR_BGRA2RGBA)
-        else:
-            image = image_[:,:,:]
-    except:
-        error = image_.shape
-        print(error)
-        exit()
-    try:
-        os.makedirs(os.path.join(STORAGE_DIR,member_info["email"],))
-    except:
-        pass
-    thumbnail_image = cv2.resize(image,(100,int(h*(100/w))))
-    await write_profile_ext(member_info,ext)
-    await write_image(thumbnail_image,os.path.join(STORAGE_DIR,member_info["email"],f"profile_mini{ext}"))
-    standard_image = cv2.resize(image,(640,int(h*(640/w))))
-    await write_image(standard_image,os.path.join(STORAGE_DIR,member_info["email"],f"profile_standard{ext}"))
-    await write_image(image,os.path.join(STORAGE_DIR,member_info["email"],f"profile_origin{ext}"))
-    
-    
-async def profile_image_delete(member_info):
-    ext = await read_profile_ext(member_info)
-    os.remove(os.path.join(STORAGE_DIR,member_info["email"],f'profile_mini{ext}'))
-    os.remove(os.path.join(STORAGE_DIR,member_info["email"],f'profile_standard{ext}'))
-    os.remove(os.path.join(STORAGE_DIR,member_info["email"],f'profile_origin{ext}'))
-    os.remove(os.path.join(STORAGE_DIR,member_info["email"],'profile_ext.txt'))
-    
-async def read_profile_ext(member_info):
-    try:
-        async with aiofiles.open(os.path.join(STORAGE_DIR,member_info["email"],"profile_ext.txt"), "r") as f:
-            result = await f.readlines()
-        return result[0].strip()
-    except:
-        return None
-
-async def write_profile_ext(member_info,ext):
-    async with aiofiles.open(os.path.join(STORAGE_DIR,member_info["email"],"profile_ext.txt"),"w") as f:
-        await f.write(ext)
-
-
-async def update_poting_create(posting,member_id):
-    now = datetime.now()
-    now = datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
-    posting["create_at"] = now
-    posting["views"]=0
-    posting["like"]=0
-    posting["update_nums"]=0
-    posting["sold_out"]=False
-    posting["update_date"]=now
-    posting["member_id"]=member_id
-    del posting["email"]
-    return posting
+async def write_json(json_object,path):
+    json_object = ujson.dumps(json_object)
+    async with aiofiles.open(path,"w") as f:
+        await f.write(json_object)
+        
+async def read_json(path):
+    async with aiofiles.open(path) as f:
+        return ujson.loads(await f.read())
