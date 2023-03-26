@@ -29,7 +29,6 @@ class Verification:
                 return RedirectResponse("http://wisixicidi.iptime.org:10000")
             else:
                 return RedirectResponse("http://wisixicidi.iptime.org:10000")
-            # if member_enc['create_at']
         
         
 
