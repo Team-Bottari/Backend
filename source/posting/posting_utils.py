@@ -1,6 +1,5 @@
 from datetime import datetime
 from config import POSTING_SUMMARIES,STORAGE_DIR
-from asyncio import gather
 import shutil
 import os
 
