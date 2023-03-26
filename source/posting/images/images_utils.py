@@ -6,7 +6,7 @@ from pathlib import Path
 from io import BytesIO
 from config import STORAGE_DIR
 from PIL import Image
-from utils import read_image,read_json,write_image,write_json
+from utils import write_image
 
 def make_path(posting_id,image_id):
     return os.path.join(STORAGE_DIR,"postings",str(posting_id).zfill(10),str(image_id).zfill(2))

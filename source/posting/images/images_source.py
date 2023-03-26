@@ -27,7 +27,7 @@ class Images:
     async def read_origin_image(self,posting_id:str,image_id:str):
         path = get_specific_path(posting_id,image_id,tag="origin")
         return FileResponse(path)
-    ############################################# 밑에는 만들어야함 ######################################################################
+    
     @posting_images_router.posting(POSTING_IMAGES_URL+"/{posting_id}/{image_id}/update")
     async def update_image(self,background_task:BackgroundTasks,posting_id:str,image_id:str,upload_file:UploadFile=File(...)):
         await update_posting_image(posting_id,image_id,upload_file)
