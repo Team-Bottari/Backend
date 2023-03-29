@@ -22,10 +22,10 @@ async def uploadfile2array(uploadfile):
 
 async def create_posting_image(posting_id,image_id,uploadfile):
     path = make_path(posting_id,image_id)
-    origin = uploadfile2array(uploadfile)
+    origin = await uploadfile2array(uploadfile)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
-    os.mkdir(path)
+    os.makedirs(path)
     ext = str(Path(uploadfile.filename).suffix)
     await write_image(mini,path+"/mini"+ext,ext)
     await write_image(standard,path+"/standard"+ext,ext)
@@ -35,7 +35,7 @@ async def update_posting_image(posting_id,image_id,uploadfile):
     path = make_path(posting_id,image_id)
     image_names = os.listdir(path)
     map(lambda name : os.remove(os.path.join(path,name)),image_names)
-    origin = uploadfile2array(uploadfile)
+    origin = await uploadfile2array(uploadfile)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
     ext = str(Path(uploadfile.filename).suffix)
