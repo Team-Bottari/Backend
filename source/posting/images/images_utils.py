@@ -25,7 +25,10 @@ async def create_posting_image(posting_id,image_id,uploadfile):
     origin = await uploadfile2array(uploadfile)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
-    os.makedirs(path)
+    try:
+        os.makedirs(path)
+    except:
+        pass
     ext = str(Path(uploadfile.filename).suffix)
     await write_image(mini,path+"/mini"+ext,ext)
     await write_image(standard,path+"/standard"+ext,ext)

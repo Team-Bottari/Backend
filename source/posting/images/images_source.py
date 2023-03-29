@@ -33,6 +33,6 @@ class Images:
         return {"response":200}
     @posting_images_router.post(POSTING_IMAGES_URL+"/{posting_id}/{image_id}/delete")
     async def delete_image(self,background_task:BackgroundTasks,posting_id:str,image_id:str):
-        background_task.add(delete_posting_image,posting_id,image_id)
+        background_task.add_task(delete_posting_image,posting_id,image_id)
         return {"response":200}
     
