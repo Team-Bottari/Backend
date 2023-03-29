@@ -33,6 +33,7 @@ class MemberSource:
         # birth date로 형변환
         member_info['birth'] = datetime.datetime.strptime(member_info['birth'],'%Y-%m-%d')
         member_info['create_at'] = datetime.datetime.now()
+        member_info['update_at'] = datetime.datetime.now()
         member_info['withdrawal'] = False
         member_info['certificate_status'] = False
         random_value = make_random_value()
@@ -159,7 +160,7 @@ class MemberSource:
     @member_router.post(MEMBER_URL+"/update-member-info", summary="회원정보 수정")
     async def update_member_info(self, member_info:Member_update_info):
         member_info = jsonable_encoder(member_info)
-        query = update(Member).where(Member.email==member_info["email"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"])
+        query = update(Member).where(Member.email==member_info["email"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"], update_at=datetime.datetime.now())
         result = await session.execute(query)
         await session.commit()
         return {"update_member_info": True}

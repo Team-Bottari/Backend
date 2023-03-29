@@ -9,7 +9,6 @@ PROFILE_URL = MEMBER_URL+"/profile"
 VERIFICATION_URL = MAIN_URL+"/verification/{random_value}"
 
 POSTING_URL = MAIN_URL+"/posting"
-POSTING_SUMMARIES = ["title",'price','update_date','like','views']
 POSTING_IMAGES_URL = MAIN_URL+"/images"
 EMAILS = [
     {

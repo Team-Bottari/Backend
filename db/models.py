@@ -7,7 +7,7 @@ Base = declarative_base()
 
 class Member(Base):
     __tablename__ = "member"
-    member_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True)
+    member_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True, unique=True)
     email = Column(TEXT, nullable=False)
     pw = Column(TEXT, nullable=False)
     nick_name = Column(TEXT, nullable=False)
@@ -18,6 +18,7 @@ class Member(Base):
     profile_picture = Column(TEXT, nullable=True)
     withdrawal = Column(BOOLEAN, nullable=False)
     create_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
+    update_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
     last_login = Column(DATETIME, nullable=True)
     last_logout = Column(DATETIME, nullable=True)
     certificate_num = Column(TEXT, nullable=False)
@@ -31,19 +32,20 @@ class Member_Admin(ModelView,model=Member):
     
 class Posting(Base):
     __tablename__ = "posting"
-    posting_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True)
+    posting_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True, unique=True)
     title = Column(TEXT, nullable=False)
     content = Column(TEXT, nullable=False)
     price = Column(BIGINT, nullable=False)
-    sold_out = Column(BOOLEAN, nullable=False,)
+    sold_out = Column(BOOLEAN, nullable=False)
     member_id = Column(BIGINT, ForeignKey('member.member_id'),nullable=False)
     create_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
     image_path = Column(JSON,nullable=True)
     views = Column(BIGINT, nullable=False)
     like = Column(BIGINT, nullable=False)
     update_nums = Column(BIGINT, nullable=False)
-    update_date = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
+    update_at = Column(DATETIME, nullable=False,  default=datetime.datetime.utcnow)
     category = Column(TEXT, nullable=False)
+    remove = Column(BOOLEAN, nullable=False)
     can_discount = Column(BOOLEAN, nullable=False,)
     average_price = Column(BIGINT, nullable=True)
     lowest_price = Column(BIGINT, nullable=True)

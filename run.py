@@ -6,6 +6,7 @@ from source.member import member_router
 from source.posting import posting_router
 from source.verification import verification_router
 from source.member.profile import profile_router
+from source.posting.images import posting_images_router
 from fastapi_utils.tasks import repeat_every
 from loguru import logger
 from db import engine
@@ -40,7 +41,7 @@ app.include_router(member_router)
 app.include_router(verification_router)
 app.include_router(profile_router)
 app.include_router(posting_router)
-
+app.include_router(posting_images_router)
 
 app.add_middleware(
     CORSMiddleware,
