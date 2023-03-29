@@ -17,35 +17,59 @@ def get_specific_path(posting_id,image_id,tag):
     filename = list(filter(lambda x : tag in x,image_names))[0]
     return os.path.join(path,filename)
 
-async def uploadfile2array(uploadfile):
+async def uploadfile2array(uploadfile,return_ext=False):
     return np.array(Image.open(BytesIO(await uploadfile.read())))
+
+def clear_path(path):
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    os.makedirs(path)
+
+def color_convert(image,ext):
+    if ext.lower()==".jpg":
+        return cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+    elif ext.lower()==".png":
+        return cv2.cvtColor(image,cv2.COLOR_BGRA2RGBA)
+    else:
+        return cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
 
 async def create_posting_image(posting_id,image_id,uploadfile):
     path = make_path(posting_id,image_id)
     origin = await uploadfile2array(uploadfile)
+    ext = str(Path(uploadfile.filename).suffix)
+    origin = color_convert(origin,ext)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
-    try:
-        os.makedirs(path)
-    except:
-        pass
-    ext = str(Path(uploadfile.filename).suffix)
+    clear_path(path)
     await write_image(mini,path+"/mini"+ext,ext)
     await write_image(standard,path+"/standard"+ext,ext)
     await write_image(origin,path+"/origin"+ext,ext)
-
+    index_sort(path)
+    
 async def update_posting_image(posting_id,image_id,uploadfile):
     path = make_path(posting_id,image_id)
-    image_names = os.listdir(path)
-    map(lambda name : os.remove(os.path.join(path,name)),image_names)
     origin = await uploadfile2array(uploadfile)
+    ext = str(Path(uploadfile.filename).suffix)
+    origin = color_convert(origin,ext)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
-    ext = str(Path(uploadfile.filename).suffix)
+    clear_path(path)
     await write_image(mini,path+"/mini"+ext,ext)
     await write_image(standard,path+"/standard"+ext,ext)
     await write_image(origin,path+"/origin"+ext,ext)
+    index_sort(path)
 
+def index_sort(path):
+    ppath = str(Path(path).parent)
+    image_ids = sorted(os.listdir(ppath))
+    count=1
+    for id in image_ids:
+        if str(count).zfill(2)==id:
+            pass
+        else:
+            os.rename(os.path.join(ppath,id),os.path.join(ppath,str(count).zfill(2)))
+        count+=1
+        
 def delete_posting_image(posting_id,image_id):
     path = make_path(posting_id,image_id)
     shutil.rmtree(path)

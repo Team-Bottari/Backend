@@ -1,7 +1,7 @@
 import os
 
 # Hyper-Params
-DEPLOY_MODE = True
+DEPLOY_MODE = False
 HOST = '192.168.0.32' if DEPLOY_MODE else '127.0.0.1'
 PORT = 30000 if DEPLOY_MODE else 8000
 VERSION = 'v1.0.0'
