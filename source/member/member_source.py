@@ -123,12 +123,18 @@ class MemberSource:
     async def find_pw(self,member_info:Member_findpw,background_task:BackgroundTasks):
         member_info = jsonable_encoder(member_info)
         target_email = member_info["email"]
-        random_value = make_random_value()
-        query = update(Member).where(Member.email==member_info["email"]).values(pw = random_value)
+        query = select(Member).where(Member.email==member_info["email"], Member.name == member_info['name'], Member.birth == member_info['birth']) # 회원정보 맞는지 확인 
         result = await session.execute(query)
-        await session.commit()
-        background_task.add_task(send_pw_mail,target_email,random_value)
-        return {"random_value" : random_value}
+        info = result.first()
+        if info is None:
+            return JSONResponse({"result":"아이디가 없거나, 입력하신 회원 정보 확인 부탁드립니다."})
+        else:
+            random_value = make_random_value()
+            query = update(Member).where(Member.email==member_info["email"]).values(pw = random_value)
+            await session.execute(query)
+            await session.commit()
+            background_task.add_task(send_pw_mail,target_email,random_value)
+            return {"random_value" : random_value}
         
     
     @member_router.post(MEMBER_URL+"/pw-change",summary="비밀번호변경",)
