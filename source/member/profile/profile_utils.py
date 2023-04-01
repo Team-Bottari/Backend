@@ -41,7 +41,7 @@ async def profile_image_save(request):
     header,image_base64 = str(request_list["upload_file"]).split(",")
     image_bytes = base64.b64decode(image_base64)
     image_ = cv2.imdecode(np.fromstring(image_bytes,np.uint8),cv2.IMREAD_COLOR)
-    ext = header[header.find("/")+1:header.find(";")]
+    ext = "."+header[header.find("/")+1:header.find(";")]
     member_info = ujson.loads(request_list["member_info"])
     try:
         h,w,c = image_.shape
