@@ -29,6 +29,7 @@ class Member_login(BaseModel):
 class Member_findemail(BaseModel):
     name : str = Field(min_length=2,max_length=20)
     birth : str = Field(min_length=10,max_length=10)
+    phone : str = Field(min_length=11,max_length=11)
     
 class Member_findpw(BaseModel):
     email : EmailStr

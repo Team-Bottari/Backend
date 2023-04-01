@@ -109,7 +109,7 @@ class MemberSource:
     @member_router.post(MEMBER_URL+"/id-find",summary="이메일찾기",)
     async def find_email(self,member_info:Member_findemail):
         member_info = jsonable_encoder(member_info)
-        query = select(Member).where(Member.name==member_info["name"]).where(Member.birth==member_info["birth"], Member.withdrawal==False)
+        query = select(Member).where(Member.name==member_info["name"]).where(Member.birth==member_info["birth"], Member.phone == member_info['phone'], Member.withdrawal==False)
         result = await session.execute(query)
         info = result.first()
         if info is None:
