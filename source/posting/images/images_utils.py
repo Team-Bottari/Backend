@@ -19,7 +19,6 @@ def get_specific_path(posting_id,image_id,tag):
 
 async def uploadfile2array(uploadfile,return_ext=False):
     return np.array(Image.open(BytesIO(await uploadfile.read())))
-
 def clear_path(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
