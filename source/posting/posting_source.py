@@ -1,13 +1,21 @@
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
-from config import POSTING_URL
+from config import POSTING_URL,MAIN_DIR
 from .posting_data import Posting_create,Posting_update
 from fastapi.encoders import jsonable_encoder
 from fastapi.background import BackgroundTasks
-from .posting_utils import posting_create,posting2summaries,delete_none_in_posting,delete_posting_dir,create_posting_dir, posting_update_at
+from fastapi.responses import FileResponse
+from .posting_utils import posting_create,posting2summaries,delete_none_in_posting,delete_posting_dir,create_posting_dir, posting_update_at,get_image_path
 from db import session, Member, Posting
-from sqlalchemy import select,update,delete
+from sqlalchemy import select,update
+import os
 posting_router = InferringRouter()
+
+BASIC_POSTING_RESPONSES = {
+    "mini":FileResponse(os.path.join(MAIN_DIR,"static","posting_mini.png")),
+    "standard":FileResponse(os.path.join(MAIN_DIR,"static","posting_standard.png")),
+    "origin":FileResponse(os.path.join(MAIN_DIR,"static","posting_origin.png")),
+}
 
 @cbv(posting_router)
 class PostingSource:
@@ -48,6 +56,30 @@ class PostingSource:
             item = jsonable_encoder(item)
             return {"response": 200,"posting":item["Posting"]}
         
+    @posting_router.get(POSTING_URL+"/{posting_id}/mini",summary="포스팅 썸네일 mini")
+    async def posting_thumbnail_mini(self,posting_id:str):
+        path = get_image_path(posting_id,"mini")
+        if path is None:
+            return BASIC_POSTING_RESPONSES["mini"]
+        else:
+            return FileResponse(path)
+    
+    @posting_router.get(POSTING_URL+"/{posting_id}/standard",summary="포스팅 썸네일 standard")
+    async def posting_thumbnail_standard(self,posting_id:str):
+        path = get_image_path(posting_id,"standard")
+        if path is None:
+            return BASIC_POSTING_RESPONSES["standard"]
+        else:
+            return FileResponse(path)
+    
+    @posting_router.get(POSTING_URL+"/{posting_id}/origin",summary="포스팅 썸네일 origin")
+    async def posting_thumbnail_origin(self,posting_id:str):
+        path = get_image_path(posting_id,"origin")
+        if path is None:
+            return BASIC_POSTING_RESPONSES["origin"]
+        else:
+            return FileResponse(path)
+        
     @posting_router.post(POSTING_URL+"/{posting_id}/update",summary="포스팅 업데이트")
     async def posting_update(self,posting_id:str,posting:Posting_update):
         posting = jsonable_encoder(posting)
@@ -68,50 +100,3 @@ class PostingSource:
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-"""
-@posting_router.post(POSTING_URL)
-    async def create_posting(self,posting:Posting_create):
-        posting = jsonable_encoder(posting)
-        query = select(Member).where(Member.email==posting["email"])
-        result = await session.execute(query)
-        member_id = jsonable_encoder(result.first()[0])["member_id"]
-        posting_info = await update_posting_create(posting,member_id)
-        create_at = posting_info["create_at"]
-        posting = Posting(**posting_info)
-        session.add(posting)
-        result = await session.commit()
-        query = select(Posting).where(Posting.member_id==member_id,Posting.create_at == create_at)
-        result = await session.execute(query)
-        item = result.first()
-        if item is None:
-            print("치명적 에러")
-        else:
-            posting_id = jsonable_encoder(item[0])["posting_id"]
-        return {"response":200,"posting_id":posting_id}
-"""

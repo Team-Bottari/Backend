@@ -16,7 +16,6 @@ def make_random_value():
         result+=CHARSETS[random.randint(0,len(CHARSETS)-1)]
     return result
 
-
 def make_run_bash():
     if DEPLOY_MODE:
         run_scripts = f"gunicorn run:app\
