@@ -54,6 +54,18 @@ class Posting_Admin(ModelView,model=Posting):
     column_list = [ eval(f"Posting.{column.name}") for column in Posting().__table__.columns]
     page_size = 50
     page_size_options = [25, 50, 100, 200]
+    
+class Like(Base):
+    __tablename__ = "like"
+    like_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True, unique=True)
+    status = Column(BOOLEAN, nullable=False)
+    member_id = Column(BIGINT, ForeignKey('member.member_id'),nullable=False) 
+    posting_id = Column(BIGINT, ForeignKey('posting.posting_id'),nullable=False)
+    
+class Like_Admin(ModelView, model = Like):
+    column_list = [ eval(f"Like.{column.name}") for column in Like().__table__.columns]
+    page_size = 50
+    page_size_options = [25, 50, 100, 200]
 
 if __name__=="__main__":
     pass

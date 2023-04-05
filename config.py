@@ -10,6 +10,7 @@ VERIFICATION_URL = MAIN_URL+"/verification/{random_value}"
 
 POSTING_URL = MAIN_URL+"/posting"
 POSTING_IMAGES_URL = MAIN_URL+"/images"
+LIKE_URL = MAIN_URL + '/like'
 EMAILS = [
     {
         "email":"kimsuhyun72@naver.com",
