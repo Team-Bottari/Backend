@@ -51,9 +51,14 @@ class PostingSource:
         result = await session.execute(query)
         item = result.first()
         if item is None:
-            return {"response":"치명적인에러"}
+            return {"response":"해당 posting_id의 포스팅이 없습니다."}
         else:
             item = jsonable_encoder(item)
+            # 조회수 update
+            item["Posting"]['views'] = item["Posting"]['views'] + 1 # 현재 조회한 숫자도 올려서 보여주기 위함.
+            query = update(Posting).where(Posting.posting_id==posting_id, Posting.remove==False).values(views= Posting.views + 1)
+            result = await session.execute(query)
+            await session.commit()
             return {"response": 200,"posting":item["Posting"]}
         
     @posting_router.get(POSTING_URL+"/{posting_id}/mini",summary="포스팅 썸네일 mini")
