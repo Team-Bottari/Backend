@@ -1,7 +1,7 @@
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
 from config import POSTING_URL,MAIN_DIR
-from .posting_data import Posting_create,Posting_update
+from .posting_data import Posting_create,Posting_update, Member_id_check
 from fastapi.encoders import jsonable_encoder
 from fastapi.background import BackgroundTasks
 from fastapi.responses import FileResponse
@@ -45,21 +45,25 @@ class PostingSource:
         list_item_summaries = posting2summaries(list_items)
         return {"response":200,"items":list_item_summaries}
     
-    @posting_router.get(POSTING_URL+"/{posting_id}",summary="포스팅 상세조회")
-    async def posting_read(self,posting_id:str=None):
+    @posting_router.post(POSTING_URL+"/{posting_id}",summary="포스팅 상세조회")
+    async def posting_read(self,member_id_check: Member_id_check, posting_id:str=None):
+        member_id = jsonable_encoder(member_id_check)['member_id']
         query = select(Posting).where(Posting.posting_id==posting_id, Posting.remove==False)
         result = await session.execute(query)
         item = result.first()
         if item is None:
             return {"response":"해당 posting_id의 포스팅이 없습니다."}
+        
         else:
             item = jsonable_encoder(item)
-            # 조회수 update
-            item["Posting"]['views'] = item["Posting"]['views'] + 1 # 현재 조회한 숫자도 올려서 보여주기 위함.
-            query = update(Posting).where(Posting.posting_id==posting_id, Posting.remove==False).values(views= Posting.views + 1)
-            result = await session.execute(query)
-            await session.commit()
-            return {"response": 200,"posting":item["Posting"]}
+            # 본인이 올린 글이 아니면 끌어올리기.
+            if item['Posting']['member_id'] != member_id:
+                # 조회수 update
+                item["Posting"]['views'] = item["Posting"]['views'] + 1 # 현재 조회한 숫자도 올려서 보여주기 위함.
+                query = update(Posting).where(Posting.posting_id==posting_id, Posting.remove==False).values(views= Posting.views + 1)
+                result = await session.execute(query)
+                await session.commit()
+        return {"response": 200,"posting":item["Posting"]}
         
     @posting_router.get(POSTING_URL+"/{posting_id}/mini",summary="포스팅 썸네일 mini")
     async def posting_thumbnail_mini(self,posting_id:str):
@@ -85,9 +89,10 @@ class PostingSource:
         else:
             return FileResponse(path)
         
-    @posting_router.put(POSTING_URL+"/{posting_id}/{member_id}",summary="포스팅 업데이트")
-    async def posting_update(self, posting_id:str, member_id : str, posting:Posting_update):
+    @posting_router.put(POSTING_URL+"/{posting_id}",summary="포스팅 업데이트")
+    async def posting_update(self,member_id_check: Member_id_check, posting_id:str, posting:Posting_update):
         posting = jsonable_encoder(posting)
+        member_id = jsonable_encoder(member_id_check)['member_id']
         # 수정 권한 체크
         query = select(Posting).where(Posting.posting_id==posting_id,Posting.member_id==member_id, Posting.remove==False)
         result = await session.execute(query)
@@ -102,8 +107,9 @@ class PostingSource:
             await session.commit()
             return {"response":"수정 완료"}
     
-    @posting_router.delete(POSTING_URL+"/{posting_id}/{member_id}",summary="포스팅 삭제")
-    async def posting_delete(self,posting_id:str, member_id : str, background_task:BackgroundTasks):
+    @posting_router.delete(POSTING_URL+"/{posting_id}",summary="포스팅 삭제")
+    async def posting_delete(self,member_id_check: Member_id_check, posting_id:str, background_task:BackgroundTasks):
+        member_id = jsonable_encoder(member_id_check)['member_id']
         # 삭제 권한 체크
         query = select(Posting).where(Posting.posting_id==posting_id,Posting.member_id==member_id, Posting.remove==False)
         result = await session.execute(query)
@@ -121,8 +127,9 @@ class PostingSource:
             background_task.add_task(delete_posting_dir,posting_id)
             return {"response":"삭제 완료"}
     
-    @posting_router.put(POSTING_URL+"/{posting_id}/{member_id}/pull-up",summary="포스팅 끌어올리기")
-    async def posting_pull_up(self,posting_id:str, member_id:str):
+    @posting_router.put(POSTING_URL+"/{posting_id}/pull-up",summary="포스팅 끌어올리기")
+    async def posting_pull_up(self,member_id_check: Member_id_check,posting_id:str):
+        member_id = jsonable_encoder(member_id_check)['member_id']
         query = select(Posting).where(Posting.posting_id==posting_id, Posting.member_id==member_id, Posting.remove==False)
         result = await session.execute(query)
         posting = result.first()
