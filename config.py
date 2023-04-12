@@ -9,7 +9,7 @@ PROFILE_URL = MEMBER_URL+"/profile"
 VERIFICATION_URL = MAIN_URL+"/verification/{random_value}"
 
 POSTING_URL = MAIN_URL+"/posting"
-POSTING_IMAGES_URL = MAIN_URL+"/images"
+POSTING_IMAGES_URL = POSTING_URL+"/images"
 LIKE_URL = MAIN_URL + '/like'
 EMAILS = [
     {
