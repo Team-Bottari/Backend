@@ -1,7 +1,9 @@
 import os
 import numpy as np
+import time
 import cv2
 import shutil
+import aiofiles
 from pathlib import Path
 from io import BytesIO
 from config import STORAGE_DIR
@@ -18,14 +20,21 @@ def get_specific_path(posting_id,image_id,tag):
     return os.path.join(path,filename)
 
 async def uploadfile2array(uploadfile,return_ext=False):
-    return np.array(Image.open(BytesIO(await uploadfile.read())))
+    name = "_".join(str(time.time()).split("."))+str(Path(uploadfile.filename).suffix)
+    async with aiofiles.open(name,"wb+") as f:
+        await f.write( uploadfile.file.read())
+    image = cv2.imread(name)
+    os.remove(name)
+    print(image)
+    return image
+
 def clear_path(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
     os.makedirs(path)
 
 def color_convert(image,ext):
-    if ext.lower()==".jpg":
+    if ext.lower()==".jpg" or ext.lower()==".jpeg":
         return cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
     elif ext.lower()==".png":
         return cv2.cvtColor(image,cv2.COLOR_BGRA2RGBA)
@@ -36,6 +45,8 @@ async def create_posting_image(posting_id,image_id,uploadfile):
     path = make_path(posting_id,image_id)
     origin = await uploadfile2array(uploadfile)
     ext = str(Path(uploadfile.filename).suffix)
+    print(ext)
+    print(type(origin))
     origin = color_convert(origin,ext)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
