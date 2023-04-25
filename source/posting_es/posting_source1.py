@@ -12,28 +12,29 @@ from sqlalchemy import select,update
 import os, datetime
 posting_router = InferringRouter()
 
-# BASIC_POSTING_RESPONSES = {
-#     "mini":FileResponse(os.path.join(MAIN_DIR,"static","posting_mini.png")),
-#     "standard":FileResponse(os.path.join(MAIN_DIR,"static","posting_standard.png")),
-#     "origin":FileResponse(os.path.join(MAIN_DIR,"static","posting_origin.png")),
-# }
+BASIC_POSTING_RESPONSES = {
+    "mini":FileResponse(os.path.join(MAIN_DIR,"static","posting_mini.png")),
+    "standard":FileResponse(os.path.join(MAIN_DIR,"static","posting_standard.png")),
+    "origin":FileResponse(os.path.join(MAIN_DIR,"static","posting_origin.png")),
+}
 
-# @cbv(posting_router)
-# class PostingSource:
-    # @posting_router.post(POSTING_URL,summary="포스팅 생성")
-    # async def create_posting(self,posting:Posting_create,background_task:BackgroundTasks):
-    #     posting = jsonable_encoder(posting)
-    #     query = select(Member).where(Member.email==posting["email"])
-    #     result = await session.execute(query)
-    #     member_id = jsonable_encoder(result.first()[0])["member_id"]
-    #     posting_info = await posting_create(posting,member_id)
-    #     posting = Posting(**posting_info)
-    #     session.add(posting)
-    #     await session.flush()
-    #     posting_id = posting.posting_id
-    #     await session.commit()
-    #     background_task.add_task(create_posting_dir,posting_id)
-    #     return {"response":200,"posting_id":posting_id} 
+@cbv(posting_router)
+class PostingSource:
+    @posting_router.post(POSTING_URL,summary="포스팅 생성")
+    async def create_posting(self,posting:Posting_create,background_task:BackgroundTasks):
+        posting = jsonable_encoder(posting)
+        query = select(Member).where(Member.email==posting["email"])
+        result = await session.execute(query)
+        member_id = jsonable_encoder(result.first()[0])["member_id"]
+        posting_info = await posting_create(posting,member_id)
+        res = client.index(index="posting", body=posting_info)
+        # posting = Posting(**posting_info)
+        # session.add(posting)
+        # await session.flush()
+        # posting_id = posting.posting_id
+        # await session.commit()
+        # background_task.add_task(create_posting_dir,posting_id)
+        return {"response":200,"posting_id":posting_id} 
     
     # @posting_router.get(POSTING_URL+"/list",summary="포스팅 검색")
     # async def posting_list(self,keyword : str = None):
@@ -126,16 +127,6 @@ posting_router = InferringRouter()
     #             # 끌올 했으면 끌올 후 2일 지난 후 가능.
     #             else:
     #                 return {"response":"마지막 끌어올리기 시점부터 2일 후 가능합니다."}
-    
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
     
     # @posting_router.get(POSTING_URL+"/{posting_id}/mini",summary="포스팅 썸네일 mini")
     # async def posting_thumbnail_mini(self,posting_id:str):

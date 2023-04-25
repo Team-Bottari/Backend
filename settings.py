@@ -20,7 +20,7 @@ DATABASE = 'gym'
 ES_URL = "http://192.168.0.33:9200"
 ES_USER = "elastic"
 ES_PASSWORD = "94a07s02d*fg"
-
+ES_SIZE = 20
 
 # Admin Params
 ADMIN_ID = "관리자"

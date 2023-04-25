@@ -30,10 +30,12 @@ async def posting_create(posting,member_id):
     del posting["email"]
     return posting
 
-def posting_update_at(posting):
+def posting_update_at(posting, new_posting):
     now = datetime.now()
     now = datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
     posting["update_at"]=now
+    for key in new_posting:
+        posting[key]=new_posting[key]
     return posting
 
 def dic2image_indexes(dic):
