@@ -65,6 +65,7 @@ def make_log(start_log,end_log,start_time,end_time):
 
 
 async def write_image(image,full_path,ext):
+    print(image.shape,ext,full_path)
     image_bytes = cv2.imencode(ext,image)[1].tobytes()
     async with aiofiles.open(full_path,"wb") as f:
         await f.write(image_bytes)
