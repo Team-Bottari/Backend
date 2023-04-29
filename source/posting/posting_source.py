@@ -36,10 +36,42 @@ class PostingSource:
     @posting_router.get(POSTING_URL+"/list/",summary="포스팅 검색")
     async def posting_list(self,keyword : str = None, _from: int = 0):
         if keyword is not None: # 제목에서 검색할 것인지 content안에서도 검색이 될것인지, 닉네임으로 검색을 할것인지
-            result = client.search(index='posting',body={"from":_from, 'size':ES_SIZE, 'query':{'match':{'title':keyword}}})
+            result = client.search(
+                index='posting',
+                body={
+                    "from":_from,
+                    'size':ES_SIZE,                                          
+                    "query": {
+                        "bool": {
+                            "must": [
+                                        {
+                                            "match": {
+                                                    "title": keyword
+                                                }
+                                        },
+                                        {
+                                            "match": {
+                                                    "remove": False
+                                                }
+                                        }
+                                ]
+                            }
+                        }
+                    }
+                )
         else:
-            result = client.search(index='posting',body={"from":_from, 'size':ES_SIZE})
-        print(result)
+            result = client.search(index='posting',body={"from":_from, 'size':ES_SIZE,
+                                                         "query": {
+                                                                "bool": {
+                                                                    "must": [
+                                                                                {
+                                                                                    "match": {
+                                                                                            "remove": False
+                                                                                        }
+                                                                                }
+                                                                        ]
+                                                                    }
+                        }})
         # list_item_summaries = posting2summaries(list_items) # 이것도 필요.
         return {"response":200,"items":result}
     
@@ -80,34 +112,44 @@ class PostingSource:
             return {"response":"해당 게시물이 없습니다."}
             
     
-    # @posting_router.delete(POSTING_URL+"/{posting_id}",summary="포스팅 삭제")
-    # async def posting_delete(self,member_id_check: Member_id_check, posting_id:str, background_task:BackgroundTasks):
-    #     member_id = jsonable_encoder(member_id_check)['member_id']
-    #     # 삭제 권한 체크
-    #     query = select(Posting).where(Posting.posting_id==posting_id,Posting.member_id==member_id, Posting.remove==False)
-    #     result = await session.execute(query)
-    #     posting = result.first()
-    #     if posting is None:
-    #         return {"response":"해당 게시물을 삭제할 수 없습니다."} # 이미 삭제되었거나, 게시물을 올린 당사자가 아니거나
-    #     else: 
-    #         query = update(Posting).where(Posting.posting_id==posting_id).values(remove = True, update_at = datetime.datetime.now())
-    #         await session.execute(query)
-    #         # 좋아요 status 수정
-    #         query = update(Like).where(Like.posting_id == posting_id, Like.status == True).values(status = False)
-    #         await session.execute(query)
-    #         await session.commit()
-    #         background_task.add_task(delete_posting_dir,posting_id)
-    #         return {"response":"삭제 완료"}
+    @posting_router.delete(POSTING_URL+"/{posting_id}",summary="포스팅 삭제")
+    async def posting_delete(self,member_id_check: Member_id_check, posting_id:str, background_task:BackgroundTasks):
+        member_id = jsonable_encoder(member_id_check)['member_id']
+        # 삭제 권한 체크
+        try:
+            item = client.get(index='posting',id=posting_id)
+            posting = item['_source']
+            if int(posting["member_id"]) != int(member_id):
+                return {"response":"해당 게시물을 삭제할 권한이 없습니다."}
+            elif posting['remove'] == True:
+                return {"response":"해당 게시물은 이미 삭제되었습니다."}
+            else:
+                posting['remove'] = True # 삭제
+                client.update(index='posting', id =posting_id, doc=posting)
+                background_task.add_task(delete_posting_dir,posting_id)
+                return {"response":"삭제 완료"}
+        except:
+            return {"response":"해당 게시물이 없습니다."}
     
     # @posting_router.put(POSTING_URL+"/{posting_id}/pull-up",summary="포스팅 끌어올리기")
     # async def posting_pull_up(self,member_id_check: Member_id_check,posting_id:str):
     #     member_id = jsonable_encoder(member_id_check)['member_id']
-    #     query = select(Posting).where(Posting.posting_id==posting_id, Posting.member_id==member_id, Posting.remove==False)
-    #     result = await session.execute(query)
-    #     posting = result.first()
-    #     if posting is None:
-    #         return {"response":"해당 게시물을 끌어올릴 수 없습니다."} # 이미 삭제 되었거나, 게시물을 올린 당사자가 아니거나
-    #     else:
+    #     try:
+    #         item = client.get(index='posting',id=posting_id)
+    #         posting = item['_source']
+    #         if int(posting["member_id"]) != int(member_id):
+    #             return {"response":"해당 게시물을 삭제할 권한이 없습니다."}
+    #         elif posting['remove'] == True:
+    #             return {"response":"해당 게시물은 삭제되었습니다."}
+    #         else:
+    #             if datetime.datetime.strptime(jsonable_encoder(posting[0])["update_at"], '%Y-%m-%dT%H:%M:%S') + datetime.timedelta(days=2) < datetime.datetime.now():
+    #                 posting['update_nums'] = posting['update_nums'] + 1
+    #                 posting['update_at'] = datetime.datetime.now()
+    #                 client.update(index='posting', id =posting_id, doc=posting)
+    #     except:
+    #         return {"response":"해당 게시물이 없습니다."}
+        
+
     #         # 업데이트 시간 비교해서 2일 이후 이면 가능
     #         if datetime.datetime.strptime(jsonable_encoder(posting[0])["update_at"], '%Y-%m-%dT%H:%M:%S') + datetime.timedelta(days=2) < datetime.datetime.now():
     #             query = update(Posting).where(Posting.posting_id==posting_id).values(update_nums = Posting.update_nums+1, update_at = datetime.datetime.now())
