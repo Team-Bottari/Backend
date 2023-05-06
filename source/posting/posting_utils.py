@@ -30,17 +30,15 @@ async def posting_create(posting,member_id):
     del posting["email"]
     return posting
 
-def posting_update_at(posting, new_posting):
+def posting_update_at(posting):
     now = datetime.now()
     now = datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
     posting["update_at"]=now
-    for key in new_posting:
-        posting[key]=new_posting[key]
     return posting
 
 def dic2image_indexes(dic):
     posting_id = str(dic["posting_id"]).zfill(10)
-    dic["posting_images"] = [ int(index) for index in os.listdir(os.path.join(STORAGE_DIR,"postings",posting_id))]
+    dic["posting_images"] = sorted([ int(index) for index in os.listdir(os.path.join(STORAGE_DIR,"postings",posting_id))])
     return dic
 
 def posting2summaries(list_item):
@@ -59,4 +57,8 @@ def create_posting_dir(posting_id):
 def delete_posting_dir(posting_id):
     path = os.path.join(STORAGE_DIR,"postings",str(posting_id).zfill(10))
     shutil.rmtree(path)
-    
+
+def add_images_list(posting):
+    target_path = os.path.join(STORAGE_DIR,"postings",str(posting["posting_id"]).zfill(10))
+    posting["posting_images"] = sorted([ path for path in os.listdir(target_path)])
+    return posting
