@@ -55,7 +55,7 @@ class MemberSource:
         
         # FileStorage 만들기
         try:
-            os.makedirs(os.path.join(STORAGE_DIR,member_info["email"]))
+            os.makedirs(os.path.join(STORAGE_DIR,"profiles",member_info["email"]))
         except:
             pass
         return JSONResponse({"sign_up":True})

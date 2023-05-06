@@ -27,12 +27,12 @@ async def posting_create(posting,member_id):
     posting['remove']=False
     posting["update_at"]=now
     posting["member_id"]=member_id
-    del posting["email"]
     return posting
 
-def posting_update_at(posting):
+def posting_update_data(posting,new_posting):
     now = datetime.now()
     now = datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
+    posting.update(new_posting)
     posting["update_at"]=now
     return posting
 
@@ -59,6 +59,11 @@ def delete_posting_dir(posting_id):
     shutil.rmtree(path)
 
 def add_images_list(posting):
-    target_path = os.path.join(STORAGE_DIR,"postings",str(posting["posting_id"]).zfill(10))
+    print(posting)
+    print(posting)
+    print(posting)
+    print(posting)
+    print(posting)
+    target_path = os.path.join(STORAGE_DIR,"postings",posting["posting_id"])
     posting["posting_images"] = sorted([ path for path in os.listdir(target_path)])
     return posting
