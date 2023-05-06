@@ -134,30 +134,26 @@ class PostingSource:
     @posting_router.put(POSTING_URL+"/{posting_id}/pull-up",summary="포스팅 끌어올리기")
     async def posting_pull_up(self,member_id_check: Member_id_check,posting_id:str):
         member_id = jsonable_encoder(member_id_check)['member_id']
-        # try:
-        item = client.get(index='posting',id=posting_id)
-        posting = item['_source']
-        if int(posting["member_id"]) != int(member_id):
-            return {"response":"해당 게시물을 끌어올릴 권한이 없습니다."}
-        elif posting['remove'] == True:
-            return {"response":"해당 게시물은 삭제되었습니다."}
-        else:
-            now = datetime.datetime.now()
-            now = datetime.datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
-            if datetime.datetime.strptime(jsonable_encoder(posting)["update_at"], '%Y-%m-%dT%H:%M:%S') + datetime.timedelta(days=2) < datetime.datetime.now():
-                posting['update_at'] = now
-                posting['update_nums'] +=1
-                client.update(index='posting', id =posting_id, doc=posting)
-                return{"response": True}
+        try:
+            item = client.get(index='posting',id=posting_id)
+            posting = item['_source']
+            if int(posting["member_id"]) != int(member_id):
+                return {"response":"해당 게시물을 끌어올릴 권한이 없습니다."}
+            elif posting['remove'] == True:
+                return {"response":"해당 게시물은 삭제되었습니다."}
             else:
-                print(datetime.timedelta(days=2))
-                
-                print(datetime.timedelta(days=2) - now - datetime.datetime.strptime(jsonable_encoder(posting)["update_at"], '%Y-%m-%dT%H:%M:%S'))
-                # now - jsonable_encoder(posting)["update_at"]
-                return {"response": ""}
-            
-        # except:
-        #     return {"response":"해당 게시물을 끌어올릴수 없습니다."} # 이미 삭제되었거나, 게시물을 올린 당사자가 아니거나.
+                now = datetime.datetime.now()
+                now = datetime.datetime(now.year,now.month,now.day,now.hour,now.minute,now.second)
+                if datetime.datetime.strptime(jsonable_encoder(posting)["update_at"], '%Y-%m-%dT%H:%M:%S') + datetime.timedelta(days=2) < datetime.datetime.now():
+                    posting['update_at'] = now
+                    posting['update_nums'] +=1
+                    client.update(index='posting', id =posting_id, doc=posting)
+                    return{"response": True}
+                else:
+                    can_pull_up_time = datetime.datetime.strptime(jsonable_encoder(posting)["update_at"], '%Y-%m-%dT%H:%M:%S') +datetime.timedelta(days=2)
+                    return {"response": 200, "can_pull_up_time" : str(can_pull_up_time)}
+        except:
+            return {"response":"해당 게시물을 끌어올릴수 없습니다."} # 이미 삭제되었거나, 게시물을 올린 당사자가 아니거나.
         
 
 #  @posting_router.put(POSTING_URL+"/{posting_id}/pull-up",summary="포스팅 끌어올리기")
