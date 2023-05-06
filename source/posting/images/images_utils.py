@@ -21,12 +21,10 @@ def get_specific_path(posting_id,image_id,tag):
 
 async def uploadfile2array(uploadfile,return_ext=False):
     name = "_".join(str(time.time()).split("."))+str(Path(uploadfile.filename).suffix)
-    print("사이즈 : " , uploadfile.size)
     async with aiofiles.open(name,"wb+") as f:
         await f.write( uploadfile.file.read())
-    image = cv2.imread(name)
-    # os.remove(name)
-    print(image)
+    image = cv2.imread(name)[:,:,::-1]
+    os.remove(name)
     return image
 
 def clear_path(path):
@@ -44,11 +42,8 @@ def color_convert(image,ext):
 
 async def create_posting_image(posting_id,image_id,uploadfile):
     path = make_path(posting_id,image_id)
-    
     origin = await uploadfile2array(uploadfile)
     ext = str(Path(uploadfile.filename).suffix)
-    print(ext)
-    print(type(origin))
     origin = color_convert(origin,ext)
     mini = cv2.resize(origin,(100,100))
     standard = cv2.resize(origin,(640,640))
