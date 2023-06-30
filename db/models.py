@@ -5,6 +5,9 @@ import datetime
 
 Base = declarative_base()
 
+# class ChattingRoom(Base):
+#     pass
+
 class Member(Base):
     __tablename__ = "member"
     member_id = Column(BIGINT, nullable=False, autoincrement=True, primary_key=True, unique=True)
