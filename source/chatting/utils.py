@@ -1,6 +1,15 @@
 from fastapi import WebSocket
 from typing import List
 
+
+"""
+1. 채팅방 클래스에는 무조건 2명이 포함된다.
+2. 채팅방은 게시글에 종속적
+3. 
+
+"""
+
+
 class ChattingRoom:
     def __init__(self) -> None:
         self.active_connections: List[WebSocket] = []
@@ -18,7 +27,7 @@ class ChattingRoom:
 
 class ChattingRoomManager:
     def __init__(self) -> None:
-        self.active_root: List[WebSocket] = []
+        self.active_root: List[ChattingRoom] = []
     
             
 

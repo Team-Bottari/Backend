@@ -9,3 +9,5 @@ fastapi-mail
 sqladmin
 opencv-python
 aiofiles
+cryptography
+elasticsearch==8.5.2

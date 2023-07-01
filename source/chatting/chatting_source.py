@@ -7,15 +7,6 @@ from typing import List
 
 chatting_router = InferringRouter()
 
-"""
-1. 한사람과 여러개의 채팅바잉 만들어질수있다. (게시글과 맵핑시켜야함)
-2. 
-"""
-
-
-            
-
-
 
 @cbv(chatting_router)
 class Chatting:
