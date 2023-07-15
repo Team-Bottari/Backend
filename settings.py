@@ -29,3 +29,8 @@ ADMIN_PASSWORD = "rlatngusrladmstjqkrthdusdlskarud"
 # Docs Params
 DOCS_URL = "/docs" # None if DEPLOY_MODE else "/docs"
 REDOC_URL =  "/redoc" # None if DEPLOY_MODE else "/redoc"
+
+# token
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+SECRET_KEY = "3b04c2d18ca6b79c0c8c74a09ab6f26a5b278ff38feca16bf7744fa9b6ab9cfa"
+ALGORITHM = "HS256"

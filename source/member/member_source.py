@@ -1,11 +1,14 @@
 from fastapi.responses import JSONResponse
+from fastapi import Depends, HTTPException
 from fastapi_utils.cbv import cbv
 from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL,STORAGE_DIR
 from fastapi_utils.inferring_router import InferringRouter
-from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info
-from .member_utils import send_pw_mail, send_certificate_email
+from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info, Token
+from .member_utils import send_pw_mail, send_certificate_email, make_bcrypt_pw_from_origin_pw, verify_bycrypt_pw, create_access_token
+from fastapi.security import OAuth2PasswordRequestForm
+from starlette import status
 from db import session, Member
 from sqlalchemy import select, update
 from utils import make_random_value
@@ -13,7 +16,6 @@ import datetime
 import os
 
 member_router = InferringRouter()
-
 
 @cbv(member_router)
 class MemberSource:
@@ -38,6 +40,7 @@ class MemberSource:
         member_info['certificate_status'] = False
         random_value = make_random_value()
         member_info['certificate_num'] = random_value # 인증번호
+        
 
         # 아이디 중복확인
         query = select(Member).where(Member.email==member_info["email"], Member.withdrawal == False, Member.certificate_status == True)
@@ -45,13 +48,18 @@ class MemberSource:
         if result.first() is not None:
             return {"result":"사용중인 아이디가 있습니다."}
         
+        # 암호화
+        member_info['pw'] = make_bcrypt_pw_from_origin_pw(member_info['pw'])
+        print(member_info)
+        
         # 회원가입
         member = Member(**member_info)
         session.add(member)
         await session.commit()
 
         background_task.add_task(send_certificate_email, member_info['email'], random_value)
-        #TODO 암호화 필요.
+        
+        
         
         # FileStorage 만들기
         try:
@@ -165,3 +173,22 @@ class MemberSource:
         await session.commit()
         return {"update_member_info": True}
     
+    
+    @member_router.post("/login-token", response_model=Token, summary="토큰으로 로그인")
+    async def login_for_access_token(self, form_data: OAuth2PasswordRequestForm = Depends()):
+        query = select(Member).where(Member.email==form_data.username, Member.withdrawal == False, Member.certificate_status == True)
+        member = await session.execute(query)
+        
+        if member is None:
+            return {"sign_in": "아이디를 확인하거나 회원가입을 해주세요."}
+        else:
+            member = jsonable_encoder(member.first()[0])
+            if not verify_bycrypt_pw(member['pw'], form_data.password):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Incorrect username or password",
+                    headers={"WWW-Authenticate": "Bearer"},
+                    )
+            
+        access_token = create_access_token(member)
+        return {"access_token":access_token, "token_type":"bearer", "nick_name":member['nick_name'], "email":member['email']}

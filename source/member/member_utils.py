@@ -1,8 +1,10 @@
-from settings import DDNS,PORT,VERSION
+from settings import DDNS,PORT,VERSION, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 from config import EMAILS
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+from passlib.context import CryptContext
+from datetime import timedelta, datetime
+from jose import jwt
 import smtplib
 
 
@@ -133,3 +135,23 @@ def send_pw_mail(recvEmail,key):
     s.login( sendEmail , password ) #로그인
     s.sendmail( sendEmail, recvEmail, message.as_string(),) #메일 전송, 문자열로 변환하여 보냅니다.
     s.close() #smtp 서버 연결을 종료합니다.
+    
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def make_bcrypt_pw_from_origin_pw(before_pw):
+    return pwd_context.hash(before_pw)
+
+def verify_bycrypt_pw(member_pw, login_pw):
+    # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    print(member_pw, login_pw)
+    print(pwd_context.verify(login_pw, member_pw))
+    return pwd_context.verify(login_pw, member_pw)
+
+
+
+def create_access_token(member):
+    data = {
+        "sub":member['nick_name'],
+        "exp":datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    access_tocken= jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    return access_tocken

@@ -50,5 +50,11 @@ class Member_update_info(BaseModel):
     nick_name : str = Field(min_length=2,max_length=20)
     name : str = Field(min_length=2,max_length=20)
     phone : str = Field(min_length=11,max_length=11)
+    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    email: str
+    nick_name: str
 
     
