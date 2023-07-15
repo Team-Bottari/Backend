@@ -72,7 +72,13 @@ class PostingSource:
                                                                         ]
                                                                     }
                         }})
-        # list_item_summaries = posting2summaries(list_items) # 이것도 필요.
+        """
+        result["hits"]["hits"][0] = {'_index': 'posting', '_id': 'EWkSD4kBg4HIUcUDUlsn', '_score': 0.13353139, '_source': {'title': 'jjanggu', 'content': '짱구입니다.', 'price': 5000, 'email': 'user@example.com', 'category': '만화', 'can_discount': False, 'create_at': '2023-07-01T10:30:06', 'views': 0, 'like': 0, 'update_nums': 0, 'sold_out': False, 'remove': False, 'update_at': '2023-07-01T10:30:06', 'member_id': 7}}
+        """
+        for index in range(len(result["hits"]["hits"])):
+            item = result["hits"]["hits"][index]
+            item["_source"]["posting_id"]=item["_id"] 
+        result = [ add_images_list(item["_source"]) for item in result["hits"]["hits"]]
         return {"response":200,"items":result}
     
     @posting_router.post(POSTING_URL+"/{posting_id}",summary="포스팅 상세조회")
