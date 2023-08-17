@@ -4,8 +4,16 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from passlib.context import CryptContext
 from datetime import timedelta, datetime
+from config import MEMBER_URL
+from sqlalchemy import select
+from db import Member, session
 from jose import jwt
+from fastapi import Depends
+from fastapi import APIRouter, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt, JWTError
 import smtplib
+from starlette import status
 
 
 def make_certificate_html(key):
@@ -142,16 +150,35 @@ def make_bcrypt_pw_from_origin_pw(before_pw):
 
 def verify_bycrypt_pw(member_pw, login_pw):
     # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    print(member_pw, login_pw)
-    print(pwd_context.verify(login_pw, member_pw))
     return pwd_context.verify(login_pw, member_pw)
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl = MEMBER_URL + "/login-token")
 
 
 def create_access_token(member):
     data = {
-        "sub":member['nick_name'],
+        "sub":member['email'],
         "exp":datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
     access_tocken= jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     return access_tocken
+
+async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    else:
+        query = select(Member).where(Member.email == email, Member.withdrawal == False, Member.certificate_status == True)
+        member = await session.execute(query)
+        if member is None:
+            raise credentials_exception
+        return member

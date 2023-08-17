@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL,STORAGE_DIR
 from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info, Token
-from .member_utils import send_pw_mail, send_certificate_email, make_bcrypt_pw_from_origin_pw, verify_bycrypt_pw, create_access_token
+from .member_utils import send_pw_mail, send_certificate_email, make_bcrypt_pw_from_origin_pw, verify_bycrypt_pw, create_access_token, get_current_member_by_token
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 from db import session, Member
@@ -166,23 +166,25 @@ class MemberSource:
         
 
     @member_router.post(MEMBER_URL+"/update-member-info", summary="회원정보 수정")
-    async def update_member_info(self, member_info:Member_update_info):
-        member_info = jsonable_encoder(member_info)
+    async def update_member_info(self, member_info:Member_update_info, member_by_token: Member = Depends(get_current_member_by_token)):
+        print(jsonable_encoder(member_by_token.first()[0]))
+        member_info = jsonable_encoder(member_info) # 이메일 변경 가능?
         query = update(Member).where(Member.email==member_info["email"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"], update_at=datetime.datetime.now())
         result = await session.execute(query)
         await session.commit()
         return {"update_member_info": True}
     
     
-    @member_router.post("/login-token", response_model=Token, summary="토큰으로 로그인")
+    @member_router.post(MEMBER_URL+"/login-token", response_model=Token, summary="토큰으로 로그인")
     async def login_for_access_token(self, form_data: OAuth2PasswordRequestForm = Depends()):
         query = select(Member).where(Member.email==form_data.username, Member.withdrawal == False, Member.certificate_status == True)
-        member = await session.execute(query)
         
+        member = await session.execute(query)
         if member is None:
             return {"sign_in": "아이디를 확인하거나 회원가입을 해주세요."}
         else:
             member = jsonable_encoder(member.first()[0])
+            
             if not verify_bycrypt_pw(member['pw'], form_data.password):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
