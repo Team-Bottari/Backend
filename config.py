@@ -22,4 +22,7 @@ EMAILS = [
 ]
 
 STORAGE_DIR = "/home/hdd_0"
+POSTING_DIR = Path(STORAGE_DIR)/"postings"
+PROFILE_DIR = Path(STORAGE_DIR)/"profiles"
+CHATTINGROOM_DIR = Path(STORAGE_DIR)/"chattingrooms"
 

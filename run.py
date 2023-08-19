@@ -1,13 +1,16 @@
 import os
 from settings import DOCS_URL,REDOC_URL
+from config import CHATTINGROOM_DIR,POSTING_DIR,PROFILE_DIR
 from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 from source.member import member_router
 from source.posting import posting_router
 from source.like import like_router
 from source.verification import verification_router
 from source.member.profile import profile_router
 from source.posting.images import posting_images_router
+from source.chatting import chatting_router
 from fastapi_utils.tasks import repeat_every
 from loguru import logger
 from db import engine
@@ -15,8 +18,6 @@ from admin import MyBackend
 from sqladmin import Admin
 from db import Member_Admin, Posting_Admin, Like_Admin
 from utils import request_parse,response_parse,make_log,make_run_bash
-
-
 
 
 origins = [
@@ -45,6 +46,7 @@ app.include_router(profile_router)
 app.include_router(posting_router)
 app.include_router(posting_images_router)
 app.include_router(like_router)
+app.include_router(chatting_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,6 +60,12 @@ app.add_middleware(
 @app.on_event("startup")
 async def init():
     logger.add("log/BackendServer_{time:YYYY-MM-DD}.log",format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>\n<blue>{message}</blue>\n",rotation="1 days",enqueue=True)
+    if not os.path.isdir(PROFILE_DIR):
+        os.mkdir(PROFILE_DIR)
+    if not os.path.isdir(POSTING_DIR):
+        os.mkdir(POSTING_DIR)
+    if not os.path.isdir(CHATTINGROOM_DIR):
+        os.mkdir(CHATTINGROOM_DIR)
 
 @app.middleware("http")
 async def watch_log(request: Request, call_next,):
@@ -72,6 +80,7 @@ async def watch_log(request: Request, call_next,):
 @repeat_every(seconds=24*60*60)
 async def repeat_task():
     return
+
 
 if __name__=="__main__":
     run_scripts = make_run_bash()
