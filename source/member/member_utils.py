@@ -7,7 +7,6 @@ from datetime import timedelta, datetime
 from config import MEMBER_URL
 from sqlalchemy import select
 from db import Member, session
-from jose import jwt
 from fastapi import Depends
 from fastapi import APIRouter, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
