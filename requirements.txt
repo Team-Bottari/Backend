@@ -13,3 +13,4 @@ cryptography
 elasticsearch==8.5.2
 python-multipart==0.0.5
 python-jose==3.3.0
+asyncinit
