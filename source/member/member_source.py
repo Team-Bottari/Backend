@@ -128,7 +128,7 @@ class MemberSource:
         
     
     @member_router.post(MEMBER_URL+"/pw-find",summary="비밀번호찾기",)
-    async def find_pw(self,member_info:Member_findpw,background_task:BackgroundTasks):
+    async def find_pw(self,member_info:Member_findpw,background_task:BackgroundTasks, member_by_token: Member = Depends(get_current_member_by_token)):
         member_info = jsonable_encoder(member_info)
         target_email = member_info["email"]
         random_value = make_random_value()
@@ -140,7 +140,7 @@ class MemberSource:
         
     
     @member_router.post(MEMBER_URL+"/pw-change",summary="비밀번호변경",)
-    async def change_pw(self,member_info:Member_changepw):
+    async def change_pw(self,member_info:Member_changepw, member_by_token: Member = Depends(get_current_member_by_token)):
         member_info = jsonable_encoder(member_info)
         query = select(Member).where(Member.email==member_info["email"])
         result = await session.execute(query)
