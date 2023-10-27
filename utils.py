@@ -19,6 +19,7 @@ def make_random_value():
 def make_run_bash():
     if DEPLOY_MODE:
         run_scripts = f"gunicorn run:app --workers {WORKERS} --worker-class uvicorn.workers.UvicornWorker --threads {WORKERS*2} --bind {HOST}:{PORT} --access-logfile - --error-logfile - --keep-alive 5"
+        # run_scripts = f"uvicorn run:app --host={HOST} --port={PORT} --workers {WORKERS}"
     else:
         run_scripts = f"uvicorn run:app --host={HOST} --port={PORT} --reload"
     return run_scripts
@@ -69,9 +70,9 @@ async def read_image(full_path):
     return cv2.imdecode(np.fromstring(image_bytes,dtype=np.uint8),cv2.IMREAD_COLOR)
 
 async def write_json(json_object,path):
-    json_object = ujson.dumps(json_object)
+    json_object = ujson.dumps(json_object,indent=2)
     async with aiofiles.open(path,"w") as f:
-        await f.write(json_object,indent=2)
+        await f.write(json_object)
         
 async def read_json(path):
     async with aiofiles.open(path) as f:

@@ -1,7 +1,8 @@
 import os
+import asyncio
 from settings import DOCS_URL,REDOC_URL
 from config import CHATTINGROOM_DIR,POSTING_DIR,PROFILE_DIR
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,WebSocket,WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from source.member import member_router
@@ -18,6 +19,7 @@ from admin import MyBackend
 from sqladmin import Admin
 from db import Member_Admin, Posting_Admin, Like_Admin
 from utils import request_parse,response_parse,make_log,make_run_bash
+
 
 
 origins = [
@@ -48,6 +50,8 @@ app.include_router(posting_images_router)
 app.include_router(like_router)
 app.include_router(chatting_router)
 
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -66,6 +70,10 @@ async def init():
         os.mkdir(POSTING_DIR)
     if not os.path.isdir(CHATTINGROOM_DIR):
         os.mkdir(CHATTINGROOM_DIR)
+    
+@app.on_event("shutdown")    
+async def uninit():
+    pass
 
 @app.middleware("http")
 async def watch_log(request: Request, call_next,):
@@ -80,6 +88,8 @@ async def watch_log(request: Request, call_next,):
 @repeat_every(seconds=24*60*60)
 async def repeat_task():
     return
+
+    
 
 
 if __name__=="__main__":
