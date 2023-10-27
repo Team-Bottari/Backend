@@ -1,23 +1,28 @@
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
+from fastapi import Depends
 from config import LIKE_URL
 from .like_data import Like_create, Cancle_like_create, Like_list
 from fastapi.encoders import jsonable_encoder
 from es import client
-from db import session, Posting, Like
+from db import session, Posting, Like, Member
 from sqlalchemy import select,update
 from .like_utils import delete_none_in_posting, posting_update_data
+from ..member import member_utils
+
 like_router = InferringRouter()
 
 
 @cbv(like_router)
 class LikeSource:
     @like_router.post(LIKE_URL,summary="좋아요")
-    async def create_like(self, posting_member_info:Like_create):
+    async def create_like(self, posting_member_info:Like_create, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         posting_member_info = jsonable_encoder(posting_member_info)
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if posting_member_info['member_id'] != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
         # posting 유효한 포스팅인지 확인
-        posting = client.get(index='posting',id=posting_member_info['posting_id'])
-
+        posting = client.get(index='posting',id=posting_member_info['posting_id'])        
         if posting is None:
             return {"response":"해당 게시물이 없습니다."}
         elif posting['_source']['remove'] == True:
@@ -45,8 +50,11 @@ class LikeSource:
         return {"response":"좋아요 완료"}
     
     @like_router.put(LIKE_URL, summary="좋아요 취소")
-    async def cancle_like(self, posting_member_info: Cancle_like_create):
+    async def cancle_like(self, posting_member_info: Cancle_like_create, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         posting_member_info = jsonable_encoder(posting_member_info)
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if posting_member_info['member_id'] != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
         # posting 유효한 포스팅인지 확인
         posting = client.get(index='posting',id=posting_member_info['posting_id'])
         if posting is None:
@@ -77,7 +85,11 @@ class LikeSource:
     
     
     @like_router.get(LIKE_URL + "/list", summary="좋아요 목록")
-    async def like_list(self, member_id:str):
+    async def like_list(self, member_id:str, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
+        print('member_id',member_id)
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if member_id != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
         query = select(Like).where(Like.status == True, Like.member_id == member_id)
         result = await session.execute(query)
         list_items = jsonable_encoder(result.all())

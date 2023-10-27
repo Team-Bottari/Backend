@@ -6,8 +6,10 @@ from .posting_data import Posting_create,Posting_update, Member_id_check
 from fastapi.encoders import jsonable_encoder
 from fastapi.background import BackgroundTasks
 from fastapi.responses import FileResponse
+from fastapi import Depends
 from .posting_utils import posting_create,posting2summaries,delete_none_in_posting,delete_posting_dir,create_posting_dir, posting_update_data,get_image_path, add_images_list
 from db import session, Member, Posting, Like
+from ..member import member_utils
 from es import client
 from sqlalchemy import select,update
 import os, datetime
@@ -22,8 +24,12 @@ BASIC_POSTING_RESPONSES = {
 @cbv(posting_router)
 class PostingSource:
     @posting_router.post(POSTING_URL,summary="포스팅 생성")
-    async def create_posting(self,posting:Posting_create,background_task:BackgroundTasks):
+    async def create_posting(self,posting:Posting_create,background_task:BackgroundTasks, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         posting = jsonable_encoder(posting)
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if posting['email'] != member_from_token['email']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
+        
         query = select(Member).where(Member.email==posting["email"])
         result = await session.execute(query)
         member_id = jsonable_encoder(result.first()[0])["member_id"]
@@ -82,8 +88,12 @@ class PostingSource:
         return {"response":200,"items":result}
     
     @posting_router.post(POSTING_URL+"/{posting_id}",summary="포스팅 상세조회")
-    async def posting_read(self,member_id_check: Member_id_check, posting_id:str=None):
+    async def posting_read(self,member_id_check: Member_id_check, posting_id:str=None, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         member_id = jsonable_encoder(member_id_check)['member_id']
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if member_id != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
+        
         #try:
         item = client.get(index='posting',id=posting_id)
         # 본인이 올린 글이 아니면 조회수 올리기
@@ -98,10 +108,14 @@ class PostingSource:
             
         
     @posting_router.put(POSTING_URL+"/{posting_id}",summary="포스팅 업데이트")
-    async def posting_update(self,member_id_check: Member_id_check, posting_id:str, new_posting:Posting_update):
+    async def posting_update(self,member_id_check: Member_id_check, posting_id:str, new_posting:Posting_update, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         
         new_posting = jsonable_encoder(new_posting)
         member_id = jsonable_encoder(member_id_check)['member_id']
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if member_id != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
+        
         # 수정 권한 체크
         try:
             item = client.get(index='posting',id=posting_id)
@@ -119,8 +133,12 @@ class PostingSource:
             
     
     @posting_router.delete(POSTING_URL+"/{posting_id}",summary="포스팅 삭제")
-    async def posting_delete(self,member_id_check: Member_id_check, posting_id:str, background_task:BackgroundTasks):
+    async def posting_delete(self,member_id_check: Member_id_check, posting_id:str, background_task:BackgroundTasks, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         member_id = jsonable_encoder(member_id_check)['member_id']
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if member_id != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
+        
         # 삭제 권한 체크
         try:
             item = client.get(index='posting',id=posting_id)
@@ -138,8 +156,11 @@ class PostingSource:
             return {"response":"해당 게시물이 없습니다."}
     
     @posting_router.put(POSTING_URL+"/{posting_id}/pull-up",summary="포스팅 끌어올리기")
-    async def posting_pull_up(self,member_id_check: Member_id_check,posting_id:str):
+    async def posting_pull_up(self,member_id_check: Member_id_check,posting_id:str, member_by_token: Member = Depends(member_utils.get_current_member_by_token)):
         member_id = jsonable_encoder(member_id_check)['member_id']
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        if member_id != member_from_token['member_id']:
+            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
         try:
             item = client.get(index='posting',id=posting_id)
             posting = item['_source']

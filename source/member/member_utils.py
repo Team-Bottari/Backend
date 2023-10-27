@@ -143,12 +143,13 @@ def send_pw_mail(recvEmail,key):
     s.sendmail( sendEmail, recvEmail, message.as_string(),) #메일 전송, 문자열로 변환하여 보냅니다.
     s.close() #smtp 서버 연결을 종료합니다.
     
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 def make_bcrypt_pw_from_origin_pw(before_pw):
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     return pwd_context.hash(before_pw)
 
 def verify_bycrypt_pw(member_pw, login_pw):
-    # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     return pwd_context.verify(login_pw, member_pw)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl = MEMBER_URL + "/login-token")
@@ -165,7 +166,7 @@ def create_access_token(member):
 async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
+    detail="인증정보 오류. 토큰으로 부터 회원정보를 찾을 수 없습니다.",
     headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -178,6 +179,7 @@ async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
     else:
         query = select(Member).where(Member.email == email, Member.withdrawal == False, Member.certificate_status == True)
         member = await session.execute(query)
+        print("asldkfjalskdf : ",member)
         if member is None:
             raise credentials_exception
         return member
