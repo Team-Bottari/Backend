@@ -5,7 +5,7 @@ from fastapi.background import BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL,STORAGE_DIR
 from fastapi_utils.inferring_router import InferringRouter
-from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_info_check, Member_logout, Member_withdrawal, Member_checkpw, Member_update_info, Token
+from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_checkpw, Member_update_info, Token, Member_withdrawal
 from .member_utils import send_pw_mail, send_certificate_email, make_bcrypt_pw_from_origin_pw, verify_bycrypt_pw, create_access_token, get_current_member_by_token
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
@@ -84,47 +84,38 @@ class MemberSource:
     #         return {"sign_in": True}
 
     @member_router.post(MEMBER_URL+"/logout",summary="로그아웃")
-    async def logout(self,member_info:Member_logout, member_by_token: Member = Depends(get_current_member_by_token)):
+    async def logout(self, member_by_token: Member = Depends(get_current_member_by_token)):
         member_from_token = jsonable_encoder(member_by_token.first()[0])
-        member_info = jsonable_encoder(member_info) 
-        if member_info['email'] != member_from_token['email']:
-            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
-        else:
-            member_info = jsonable_encoder(member_info)
-            query = update(Member).where(Member.email==member_info["email"]).values(last_logout=datetime.datetime.now())
-            result = await session.execute(query)
-            await session.commit()
+        query = update(Member).where(Member.email==member_from_token["email"]).values(last_logout=datetime.datetime.now())
+        result = await session.execute(query)
+        await session.commit()
         return {"logout":True}
         
-    @member_router.post(MEMBER_URL+"/info",summary="회원정보")
-    async def member_info(self,member_info:Member_info_check, member_by_token: Member = Depends(get_current_member_by_token)):
-        member_from_token = jsonable_encoder(member_by_token.first()[0])
-        member_info = jsonable_encoder(member_info) 
-        if member_info['email'] != member_from_token['email']:
-            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
-        else:
-            query = select(Member).where(Member.email==member_info["email"])
-            result = await session.execute(query)
-            info = result.first()
-            if info is None:
-                return JSONResponse({"email":False})
-            else:
-                return JSONResponse(jsonable_encoder(info[0]))
 
-        
-        
-    @member_router.post(MEMBER_URL+"/withdrawal",summary="회원탈퇴")
-    async def member_delete(self,member_info:Member_withdrawal, member_by_token: Member = Depends(get_current_member_by_token)):
+    @member_router.post(MEMBER_URL+"/info",summary="회원정보")
+    async def member_info(self, member_by_token: Member = Depends(get_current_member_by_token)):
         member_from_token = jsonable_encoder(member_by_token.first()[0])
-        member_info = jsonable_encoder(member_info) 
-        if member_info['email'] != member_from_token['email']:
-            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
+        query = select(Member).where(Member.email==member_from_token['email'])
+        result = await session.execute(query)
+        info = result.first()
+        if info is None:
+            return JSONResponse({"info":"로그인을 다시 해주세요."})
         else:
-            query = update(Member).where(Member.email==member_info["email"]).values(last_logout=datetime.datetime.now(), withdrawal=True)
+            return JSONResponse(jsonable_encoder(info[0]))
+
+
+    @member_router.post(MEMBER_URL+"/withdrawal",summary="회원탈퇴")
+    async def member_delete(self, member_info:Member_withdrawal, member_by_token: Member = Depends(get_current_member_by_token)):
+        member_info = jsonable_encoder(member_info)
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+
+        if not verify_bycrypt_pw(member_from_token['pw'], member_info["pw"]):
+            return JSONResponse({"pw_check":"회원 탈퇴를 위해서는 정확한 비밀번호가 필요합니다."})
+        else:
+            query = update(Member).where(Member.email==member_from_token["email"]).values(last_logout=datetime.datetime.now(), withdrawal=True)
             result = await session.execute(query)
             await session.commit()
-        return {"withdrawal":True}
-
+            return {"withdrawal":True}
 
 
     @member_router.post(MEMBER_URL+"/id-find",summary="이메일찾기")
@@ -141,49 +132,46 @@ class MemberSource:
         
     
     @member_router.post(MEMBER_URL+"/pw-find",summary="비밀번호찾기")
-    async def find_pw(self,member_info:Member_findpw,background_task:BackgroundTasks, member_by_token: Member = Depends(get_current_member_by_token)):
-        print(member_by_token)
-        member_from_token = jsonable_encoder(member_by_token.first()[0])
+    async def find_pw(self,member_info:Member_findpw,background_task:BackgroundTasks):
         member_info = jsonable_encoder(member_info) 
-        if member_info['member_id'] != member_by_token['member_id']:
-            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
-        else:
-            target_email = member_info["email"]
-            random_value = make_random_value()
-            query = update(Member).where(Member.email==member_info["email"]).values(pw = random_value)
-            result = await session.execute(query)
-            await session.commit()
-            background_task.add_task(send_pw_mail,target_email,random_value)
-            return {"random_value" : random_value}
+        
+        target_email = member_info["email"]
+        random_password = make_random_value()
+        bcrypt_pw = make_bcrypt_pw_from_origin_pw(random_password)
+
+        query = update(Member).where(Member.email==member_info["email"]).values(pw = bcrypt_pw)
+        result = await session.execute(query)
+        await session.commit()
+        background_task.add_task(send_pw_mail,target_email,random_password)
+        return {"random_value" : random_password}
         
     
     @member_router.post(MEMBER_URL+"/pw-change",summary="비밀번호변경")
     async def change_pw(self,member_info:Member_changepw, member_by_token: Member = Depends(get_current_member_by_token)):
         member_from_token = jsonable_encoder(member_by_token.first()[0])
         member_info = jsonable_encoder(member_info) 
-        if member_info['email'] != member_from_token['email']:
-            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
-        else:
-            query = select(Member).where(Member.email==member_info["email"])
+
+        query = select(Member).where(Member.email==member_from_token["email"])
+        result = await session.execute(query)
+        member_info['new_pw'] = make_bcrypt_pw_from_origin_pw(member_info['new_pw']) # 암호화
+
+        if verify_bycrypt_pw(jsonable_encoder(result.first()[0])['pw'],member_info['before_pw']):
+            query = update(Member).where(Member.email==member_from_token["email"]).values(pw = member_info["new_pw"])
             result = await session.execute(query)
-            
-            if jsonable_encoder(result.first()[0])['pw'] == member_info['before_pw']:
-                query = update(Member).where(Member.email==member_info["email"], Member.pw == member_info['before_pw']).values(pw = member_info["new_pw"])
-                result = await session.execute(query)
-                await session.commit()
-                return {"pw_change": True}
-            else:
-                return {"pw_change":False, "before_pw":"이전 비밀번호가 다릅니다."}
+            await session.commit()
+            return {"pw_change": True}
+        else:
+            return {"pw_change":False, "before_pw":"이전 비밀번호가 다릅니다."}
 
         
     @member_router.post(MEMBER_URL+"/pw-check", summary="비밀번호 확인(인증용)")
     async def check_pw(self, member_info:Member_checkpw, member_by_token: Member = Depends(get_current_member_by_token)):
-        member_info = jsonable_encoder(member_info)
-        query = select(Member).where(Member.email==member_info["email"], Member.pw==member_info["pw"])
-        result = await session.execute(query)
-        info = result.first()
-        if info is None:
-            return JSONResponse({"pw_check":"비밀번호 확인 부탁드립니다."})
+        member_info = jsonable_encoder(member_info) 
+        member_from_token = jsonable_encoder(member_by_token.first()[0])
+        
+        # 복호화 후 비밀번호 확인
+        if not verify_bycrypt_pw(member_from_token['pw'], member_info["pw"]):
+            return JSONResponse({"pw_check":"비밀번호를 다시 확인해주세요"})
         else:
             return JSONResponse({'pw_check':True})
         
@@ -192,13 +180,11 @@ class MemberSource:
     async def update_member_info(self, member_info:Member_update_info, member_by_token: Member = Depends(get_current_member_by_token)):
         member_from_token = jsonable_encoder(member_by_token.first()[0])
         member_info = jsonable_encoder(member_info) 
-        if member_info['email'] != member_from_token['email']:
-            return {"return" : "토큰 정보와 회원정보가 일치하지 않습니다."}
-        else:
-            query = update(Member).where(Member.email==member_info["email"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"], update_at=datetime.datetime.now())
-            result = await session.execute(query)
-            await session.commit()
-            
+        
+        query = update(Member).where(Member.email==member_from_token["email"]).values(nick_name = member_info["nick_name"], name = member_info["name"], phone = member_info["phone"], update_at=datetime.datetime.now())
+        result = await session.execute(query)
+        await session.commit()
+        
         return {"update_member_info": True}
     
     
@@ -210,7 +196,7 @@ class MemberSource:
             return {"sign_in": "아이디를 확인하거나 회원가입을 해주세요."}
         else:
             member = jsonable_encoder(member.first()[0])
-            
+            print("이거는",member['pw'], form_data.username, form_data.password)
             if not verify_bycrypt_pw(member['pw'], form_data.password):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,

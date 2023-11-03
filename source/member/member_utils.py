@@ -179,7 +179,6 @@ async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
     else:
         query = select(Member).where(Member.email == email, Member.withdrawal == False, Member.certificate_status == True)
         member = await session.execute(query)
-        print("asldkfjalskdf : ",member)
         if member is None:
             raise credentials_exception
         return member
