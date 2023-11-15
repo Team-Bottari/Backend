@@ -6,12 +6,12 @@ from fastapi.encoders import jsonable_encoder
 from config import MEMBER_URL,STORAGE_DIR
 from fastapi_utils.inferring_router import InferringRouter
 from .member_data import Member_signup,Member_override,Member_login,Member_changepw,Member_findpw,Member_findemail, Member_checkpw, Member_update_info, Token, Member_withdrawal
-from .member_utils import send_pw_mail, send_certificate_email, make_bcrypt_pw_from_origin_pw, verify_bycrypt_pw, create_access_token, get_current_member_by_token
+from .member_utils import send_pw_mail, send_certificate_email, make_bcrypt_pw_from_origin_pw, verify_bycrypt_pw, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 from db import session, Member
 from sqlalchemy import select, update
-from utils import make_random_value
+from utils import make_random_value, get_current_member_by_token
 import datetime
 import os
 
@@ -112,7 +112,7 @@ class MemberSource:
         if not verify_bycrypt_pw(member_from_token['pw'], member_info["pw"]):
             return JSONResponse({"pw_check":"회원 탈퇴를 위해서는 정확한 비밀번호가 필요합니다."})
         else:
-            query = update(Member).where(Member.email==member_from_token["email"]).values(last_logout=datetime.datetime.now(), withdrawal=True)
+            query = update(Member).where(Member.email==member_from_token["email"]).values(last_logout=datetime.datetime.now(), withdrawal=True, update_at=datetime.datetime.now())
             result = await session.execute(query)
             await session.commit()
             return {"withdrawal":True}
@@ -139,7 +139,7 @@ class MemberSource:
         random_password = make_random_value()
         bcrypt_pw = make_bcrypt_pw_from_origin_pw(random_password)
 
-        query = update(Member).where(Member.email==member_info["email"]).values(pw = bcrypt_pw)
+        query = update(Member).where(Member.email==member_info["email"]).values(pw = bcrypt_pw, update_at=datetime.datetime.now())
         result = await session.execute(query)
         await session.commit()
         background_task.add_task(send_pw_mail,target_email,random_password)
@@ -156,7 +156,7 @@ class MemberSource:
         member_info['new_pw'] = make_bcrypt_pw_from_origin_pw(member_info['new_pw']) # 암호화
 
         if verify_bycrypt_pw(jsonable_encoder(result.first()[0])['pw'],member_info['before_pw']):
-            query = update(Member).where(Member.email==member_from_token["email"]).values(pw = member_info["new_pw"])
+            query = update(Member).where(Member.email==member_from_token["email"]).values(pw = member_info["new_pw"], update_at=datetime.datetime.now())
             result = await session.execute(query)
             await session.commit()
             return {"pw_change": True}

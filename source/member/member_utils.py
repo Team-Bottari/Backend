@@ -163,22 +163,22 @@ def create_access_token(member):
     access_tocken= jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     return access_tocken
 
-async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="인증정보 오류. 토큰으로 부터 회원정보를 찾을 수 없습니다.",
-    headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    else:
-        query = select(Member).where(Member.email == email, Member.withdrawal == False, Member.certificate_status == True)
-        member = await session.execute(query)
-        if member is None:
-            raise credentials_exception
-        return member
+# async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
+#     credentials_exception = HTTPException(
+#     status_code=status.HTTP_401_UNAUTHORIZED,
+#     detail="인증정보 오류. 토큰으로 부터 회원정보를 찾을 수 없습니다.",
+#     headers={"WWW-Authenticate": "Bearer"},
+#     )
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         email: str = payload.get("sub")
+#         if email is None:
+#             raise credentials_exception
+#     except JWTError:
+#         raise credentials_exception
+#     else:
+#         query = select(Member).where(Member.email == email, Member.withdrawal == False, Member.certificate_status == True)
+#         member = await session.execute(query)
+#         if member is None:
+#             raise credentials_exception
+#         return member

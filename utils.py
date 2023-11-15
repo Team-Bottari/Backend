@@ -4,10 +4,16 @@ import random
 import numpy as np
 import aiofiles
 import cv2
-from settings import DEPLOY_MODE,HOST,PORT,WORKERS
-from fastapi import Request
+from settings import DEPLOY_MODE,HOST,PORT,WORKERS, SECRET_KEY, ALGORITHM
+from config import MEMBER_URL
+from sqlalchemy import select
+from db import Member, session
+from fastapi import Request, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from starlette.concurrency import iterate_in_threadpool
+from starlette import status
+from jose import jwt, JWTError
 
 CHARSETS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 def make_random_value():
@@ -77,3 +83,26 @@ async def write_json(json_object,path):
 async def read_json(path):
     async with aiofiles.open(path) as f:
         return ujson.loads(await f.read())
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl = MEMBER_URL + "/login-token")
+
+
+async def get_current_member_by_token(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="인증정보 오류. 토큰으로 부터 회원정보를 찾을 수 없습니다.",
+    headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    else:
+        query = select(Member).where(Member.email == email, Member.withdrawal == False, Member.certificate_status == True)
+        member = await session.execute(query)
+        if member is None:
+            raise credentials_exception
+        return member

@@ -4,7 +4,6 @@ class Posting_create(BaseModel):
     title:str
     content:str
     price:int
-    email :EmailStr # example@google.com
     category:str
     can_discount:bool
 
@@ -15,5 +14,3 @@ class Posting_update(BaseModel):
     category:str = None
     can_discount:bool = None
 
-class Member_id_check(BaseModel):
-    member_id:Any
