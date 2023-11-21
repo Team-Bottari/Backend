@@ -59,11 +59,6 @@ def delete_posting_dir(posting_id):
     shutil.rmtree(path)
 
 def add_images_list(posting):
-    print(posting)
-    print(posting)
-    print(posting)
-    print(posting)
-    print(posting)
     target_path = os.path.join(STORAGE_DIR,"postings",posting["posting_id"])
     posting["posting_images"] = sorted([ path for path in os.listdir(target_path)])
     return posting
