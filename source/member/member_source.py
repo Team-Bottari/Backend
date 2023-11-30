@@ -96,11 +96,17 @@ class MemberSource:
     async def member_info(self, member_by_token: Member = Depends(get_current_member_by_token)):
         member_from_token = jsonable_encoder(member_by_token.first()[0])
         query = select(Member).where(Member.email==member_from_token['email'])
+        #######################################################################################
+        #######################################################################################
+        #######################################################################################
         result = await session.execute(query)
         info = result.first()
         if info is None:
             return JSONResponse({"info":"로그인을 다시 해주세요."})
         else:
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            print(jsonable_encoder(info[0]))
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return JSONResponse(jsonable_encoder(info[0]))
 
 

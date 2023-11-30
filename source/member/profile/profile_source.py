@@ -42,7 +42,12 @@ class ProfileSource:
             return BASIC_PROFILE_RESPONSES['mini']
     
     @profile_router.post(PROFILE_URL+"/standard", summary="프로필 이미지 조회 standard")
-    async def get_profile_standard(self, member_by_token: Member = Depends(get_current_member_by_token)):
+    async def get_profile_standard(self,member_by_token: Member = Depends(get_current_member_by_token)):
+        print(member_by_token)
+        print(member_by_token)
+        print(member_by_token)
+        print(member_by_token)
+        member_by_token = jsonable_encoder(member_by_token.first())["Member"]
         id = member_by_token["email"]
         ext = await read_profile_ext(member_by_token)
         profile_path = os.path.join(STORAGE_DIR,"profiles",id,f"profile_standard{ext}")
@@ -53,6 +58,7 @@ class ProfileSource:
     
     @profile_router.post(PROFILE_URL+"/origin", summary="프로필 이미지 조회 origin")
     async def get_profile_origin(self, member_by_token: Member = Depends(get_current_member_by_token)):
+        member_by_token = jsonable_encoder(member_by_token.first())["Member"]
         id = member_by_token["email"]
         ext = await read_profile_ext(member_by_token)
         profile_path = os.path.join(STORAGE_DIR,"profiles",id,f"profile_origin{ext}")
